@@ -1,12 +1,12 @@
 from django.test import TestCase
 from .models import Notification
-from django.contrib.auth.models import User
+from authentication.models import MyUser
 import datetime
 
 # Create your tests here.
 class NotificationTest(TestCase):
     def setUp(self):
-        self.basic_user = User(username='admin', email='a@a.com')
+        self.basic_user = MyUser(username='admin', email='a@a.com')
         self.basic_user.save()
         Notification.objects.create(user=self.basic_user, notification_task_type='по работе', text='сделать отсчёт за месяц', notification_time='2022-10-17', notification_periodicity=False, notification_periodicity_num=0)
     def test_created_notification(self):

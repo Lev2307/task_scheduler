@@ -1,6 +1,5 @@
-import datetime
 from django.db import models
-from django.contrib.auth.models import User
+from authentication.models import MyUser
 
 # Create your models here.
 class Notification(models.Model):
@@ -9,7 +8,7 @@ class Notification(models.Model):
         STUDY = 'по учёбе'
         GENERAL = 'общее'
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
     notification_task_type = models.CharField(max_length=30, choices=TaskTypeChoices.choices, default='по работе')
     text = models.TextField(max_length=350)
     created_time = models.DateTimeField(auto_now_add=True)
@@ -22,3 +21,6 @@ class Notification(models.Model):
             return False
         else:
             return True
+
+    def __str__(self):
+        return self.text.capitalize()

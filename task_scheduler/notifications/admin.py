@@ -2,4 +2,8 @@ from django.contrib import admin
 from .models import Notification
 
 # Register your models here.
-admin.site.register(Notification)
+
+@admin.register(Notification)
+class AdminNotification(admin.ModelAdmin):
+    list_display = ('user', 'text', 'notification_time')
+    list_filter = ('user', 'created_time')
