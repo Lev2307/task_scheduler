@@ -8,7 +8,7 @@ class Notification(models.Model):
         STUDY = 'по учёбе'
         GENERAL = 'общее'
 
-    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(MyUser, null=True, on_delete=models.SET_NULL)
     notification_task_type = models.CharField(max_length=30, choices=TaskTypeChoices.choices, default='по работе')
     text = models.TextField(max_length=350)
     created_time = models.DateTimeField(auto_now_add=True)
