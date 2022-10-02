@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from .models import Notification
 from authentication.models import MyUser
 import datetime
@@ -7,6 +7,10 @@ import datetime
 class NotificationTest(TestCase):
     def setUp(self):
         self.basic_user = MyUser(username='admin', email='a@a.com')
+        self.basic_user.set_password('123')
+        self.username = self.basic_user.username
+        self.password = '123'
+        self.c = Client()
         self.basic_user.save()
         Notification.objects.create(user=self.basic_user, notification_task_type='по работе', text='сделать отсчёт за месяц', notification_time='2022-10-17', notification_periodicity=False, notification_periodicity_num=0)
     def test_created_notification(self):
@@ -50,3 +54,44 @@ class NotificationTest(TestCase):
         for choice in Notification.TaskTypeChoices.choices:
             choices.append(choice[0])
         self.assertTrue(notification.notification_task_type in choices)
+    
+    def test_homepage_getresponse(self):
+        '''Проверка url у homepage'''
+        self.c.login(username=self.username, password=self.password)
+        response = self.c.get('')
+        self.assertTrue(response.status_code == 200)
+
+    def test_notificationslist_getresponse(self):
+        '''Проверка url у notifications_list если он залогинен или незалогинен'''
+        unloggined_response = self.c.get('/notifications/read/')
+        self.assertTrue(unloggined_response.status_code == 302)
+        #logged user
+        self.c.login(username=self.username, password=self.password)
+        loggined_response = self.c.get('/notifications/read/')
+        self.assertTrue(loggined_response.status_code == 200)
+    
+    def test_notificationcreate_getresponse(self):
+        '''Проверка url у notification_create если он залогинен или незалогинен'''
+        unloggined_response = self.c.get('/notifications/create/')
+        self.assertTrue(unloggined_response.status_code == 302)
+        #logged user
+        self.c.login(username=self.username, password=self.password)
+        loggined_response = self.c.get('/notifications/create/')
+        self.assertTrue(loggined_response.status_code == 200)
+
+    def test_notificationcreate_postresponse(self):
+        '''Проверка post запроса у notification_create'''
+        self.c.login(username=self.username, password=self.password)
+        data = {
+            'user': self.username,
+            'notification_task_type': 'по учёбе',
+            'text': 'test note',
+            'notification_time': '2022-10-10',
+            'notification_periodicity': False,
+            'notification_periodicity_num': 0
+        }
+        notification_objects_old = Notification.objects.count()
+        response = self.c.post('/notifications/create/', data, follow=True)
+        notification_objects_new = Notification.objects.count()
+        self.assertTrue(notification_objects_old+1 == notification_objects_new)
+        self.assertTrue(response.status_code == 302)

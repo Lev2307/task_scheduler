@@ -27,7 +27,8 @@ class NotificationListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user)
 
-class NotificationCreateView(CreateView):
+class NotificationCreateView(LoginRequiredMixin, CreateView):
+    login_url = reverse_lazy('login')
     model = Notification
     form_class = NotificationCreateForm
     template_name = 'notifications/create_notification.html'

@@ -16,7 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from notifications.views import HomeView
-from authentication.views import RegisterView, LoginView, LogoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,8 +24,6 @@ urlpatterns = [
     # Notifications
     path('notifications/', include('notifications.urls')),
     # Auth
-    path('auth/registration/', RegisterView.as_view(), name="registration"),
-    path('auth/login/', LoginView.as_view(), name="login"),
-    path('auth/logout/', LogoutView.as_view(), name="logout")
+    path('auth/', include('authentication.urls'))
 
 ]
