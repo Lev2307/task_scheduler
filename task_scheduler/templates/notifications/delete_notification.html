@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %} Edit task page {% endblock title %}
+
+{% block content %}
+    <section>
+        <div>
+            <form action="" method="post">
+                {% csrf_token %}
+                <p>Are you sure to delete this task?</p>
+                <div class="border m-2 p-2">
+                    <div>
+                        <h5>{{ notification.notification_task_type }}</h5>
+                    </div>
+                    <p class="pt-2 pb-2">{{ notification.text }}</p>
+                    <h5>Напомнить {{ notification.notification_time }}</h5>
+                    {% if notification.notification_periodicity == True %}
+                        <h5>Постоянно напоминать - {{ notification.notification_periodicity_num }}</h5>
+                    {% else %}
+                        <h5>Не напоминать постоянно</h5>
+                    {% endif %}
+                    <h5 class="pt-2 fs-6 fst-italic">Создано {{ notification.created_time|date:"H:m d M y" }}</h5>
+                </div>
+                <button type="submit">Delete</button>
+            </form>
+        </div>
+    </section>
+{% endblock content %}

@@ -5,5 +5,5 @@ from .models import Notification
 
 @admin.register(Notification)
 class AdminNotification(admin.ModelAdmin):
-    list_display = ('user', 'text', 'notification_time')
+    list_display = ('user', 'text', 'notification_time', 'id')
     list_filter = ('user', 'created_time')

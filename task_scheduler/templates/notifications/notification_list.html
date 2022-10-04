@@ -5,7 +5,7 @@
 
 {% block content %}
     <section>
-        <nav class="bg-dark h-25 w-100 d-flex justify-content-between align-items-center">
+        <nav class="bg-dark h-25 d-flex justify-content-between align-items-center">
             {% if user.is_authenticated %}
                 <h5 class="text-white fs-4 p-2">{{ user }}</h5>
                 <h5><a class="text-white fs-4 p-2" href="/auth/logout/">Log Out</a></h5>
@@ -15,8 +15,14 @@
             {% if notifications.count > 0 %}
                 {% for notification in notifications %}
                     <div class="border m-2 p-2">
-                        <h5>{{ notification.notification_task_type }}</h5>
-                        <p>{{ notification.text }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5>{{ notification.notification_task_type }}</h5>
+                            <div>
+                                <a href="/notifications/edit/{{ notification.id }}/">Edit</a>
+                                <a href="/notifications/delete/{{ notification.id }}/">Delete</a>
+                            </div>
+                        </div>
+                        <p class="pt-2 pb-2">{{ notification.text }}</p>
                         <h5>Напомнить {{ notification.notification_time }}</h5>
                         {% if notification.notification_periodicity == True %}
                             <h5>Постоянно напоминать - {{ notification.notification_periodicity_num }}</h5>
