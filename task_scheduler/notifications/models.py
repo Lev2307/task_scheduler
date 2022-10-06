@@ -14,7 +14,7 @@ class Notification(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
     notification_time = models.DateField()
     notification_periodicity = models.BooleanField(default=False)
-    notification_periodicity_num = models.IntegerField(default=0)
+    notification_periodicity_num = models.IntegerField(default=1)
 
     def check_if_date_is_earlier(created_time, notification_time):
         if notification_time < created_time:
