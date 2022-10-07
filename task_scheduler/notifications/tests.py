@@ -12,11 +12,11 @@ class NotificationTest(TestCase):
         self.password = '123'
         self.c = Client()
         self.basic_user.save()
-        Notification.objects.create(user=self.basic_user, notification_task_type='по работе', text='сделать отсчёт за месяц', notification_time='2022-10-17', notification_periodicity=False, notification_periodicity_num=0)
+        Notification.objects.create(user=self.basic_user, notification_task_type='по работе', text='сделать отсчёт за месяц', notification_date='2022-10-17', notification_time='11:50:07', notification_periodicity=False, notification_periodicity_num=0)
     def test_created_notification(self):
         '''Проверка создания напоминалки'''
         notification_objects_old = Notification.objects.count()
-        notification = Notification.objects.create(user=self.basic_user, notification_task_type='общее', text='сходить в магаз', notification_time='2022-09-28', notification_periodicity=False, notification_periodicity_num=0)
+        notification = Notification.objects.create(user=self.basic_user, notification_task_type='общее', text='сходить в магаз', notification_date='2022-09-28', notification_time='11:50:07', notification_periodicity=False, notification_periodicity_num=0)
         notification_objects_new = Notification.objects.count()
         self.assertTrue(notification_objects_old+1 == notification_objects_new)
 
@@ -24,9 +24,11 @@ class NotificationTest(TestCase):
         '''Проверка получения данных напоминалки'''
         notification = Notification.objects.get(id=1)
         date = datetime.datetime(2022, 10, 17)
+        time = datetime.time(11, 50, 7)
         self.assertEqual(notification.notification_task_type, 'по работе')
         self.assertEqual(notification.text, 'сделать отсчёт за месяц')
-        self.assertEqual(notification.notification_time, date.date())
+        self.assertEqual(notification.notification_date, date.date())
+        self.assertEqual(notification.notification_time, time)
         self.assertEqual(notification.created_time.date(), datetime.datetime.now().date())
         self.assertEqual(notification.notification_periodicity, False)
         self.assertEqual(notification.notification_periodicity_num, 0)          
@@ -34,10 +36,24 @@ class NotificationTest(TestCase):
     def test_notification_date_isnot_earlier_than_created(self):
         '''Проверка, если поставленная дата напоминалки не раньше её создания'''
         notification = Notification.objects.get(id=1)
-        notification_prev_date = notification.notification_time
-        notification.notification_time = datetime.datetime(2018, 5, 7).date()
-        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time.date(), notification_prev_date), True)
-        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time.date(), notification.notification_time), False)
+        notification_date = datetime.datetime(2022, 12, 7).date()
+        notification_date_equals = datetime.datetime(2022, 10, 7).date()
+        notification_date_past = datetime.datetime(2018, 12, 7).date()
+        notification_time_larger = datetime.time(17, 28, 11)
+        notification_time_smaller = datetime.time(10, 28, 11)
+        # если дата напоминания > чем дата создания
+        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date, notification_time_larger), True)
+
+        # если дата напоминания равна дате создания и время напоминания в часах и минутах > чем время в часах и минутах в создании
+        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date_equals, notification_time_larger), True)
+
+        # если дата напоминания равна дате создания и время напоминания в часах и минутах < чем время в часах и минутах в создании
+        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date_equals, notification_time_smaller), False)
+
+        # если дата напоминания вообщем < дата создания
+        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date_past, notification_time_larger), False)
+        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date_past, notification_time_smaller), False)
+
 
     def test_notification_textlength(self):
         '''Проверка макс. кол-ва символов в тексте напоминалки'''
@@ -90,7 +106,8 @@ class NotificationTest(TestCase):
             'user': self.username,
             'notification_task_type': 'по учёбе',
             'text': 'test note',
-            'notification_time': '2022-10-10',
+            'notification_date': '2022-10-10',
+            'notification_time': '19:50:07',
             'notification_periodicity': False,
             'notification_periodicity_num': 0
         }
@@ -122,16 +139,18 @@ class NotificationTest(TestCase):
             'user': self.username,
             'notification_task_type': 'общее',
             'text': 'test edit note',
-            'notification_time': '2022-10-15',
+            'notification_date': '2022-10-15',
+            'notification_time': '18:32:56',
             'notification_periodicity': True,
             'notification_periodicity_num': 2
         }
-        notification_edited_time = datetime.datetime(2022, 10, 15).date()
+        notification_edited_date = datetime.datetime(2022, 10, 15).date()
+        notification_edited_time = datetime.time(18, 32, 56)
         response = self.c.post(f'/notifications/edit/{notification.id}/', data)
         notification = Notification.objects.get(id=1)
         self.assertTrue(notification.notification_task_type, 'общее')
         self.assertTrue(notification.text, 'test edit note')
-        self.assertTrue(notification.notification_time, notification_edited_time)
+        self.assertTrue(notification.notification_time, notification_edited_date)
         self.assertTrue(notification.notification_periodicity, True)
         self.assertTrue(notification.notification_periodicity_num, 2)
         self.assertTrue(response.status_code == 302)

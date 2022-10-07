@@ -12,6 +12,7 @@
             {% endif %}
         </nav>
         <div>
+            <a class="btn btn-outline-primary m-2" href="/notifications/create/">Добавить</a>
             {% if notifications.count > 0 %}
                 {% for notification in notifications %}
                     <div class="border m-2 p-2">
@@ -23,7 +24,7 @@
                             </div>
                         </div>
                         <p class="pt-2 pb-2">{{ notification.text }}</p>
-                        <h5>Напомнить {{ notification.notification_time }}</h5>
+                        <h5>Дата напоминания: {{ notification.notification_date }} {{ notification.notification_time }}</h5>
                         {% if notification.notification_periodicity == True %}
                             <h5>Постоянно напоминать - {{ notification.notification_periodicity_num }}</h5>
                         {% else %}

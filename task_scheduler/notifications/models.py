@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db import models
 from authentication.models import MyUser
 
@@ -12,15 +13,24 @@ class Notification(models.Model):
     notification_task_type = models.CharField(max_length=30, choices=TaskTypeChoices.choices, default='по работе')
     text = models.TextField(max_length=350)
     created_time = models.DateTimeField(auto_now_add=True)
-    notification_time = models.DateField()
+    notification_date = models.DateField(default=datetime.now)
+    notification_time = models.TimeField(default=datetime.now)
     notification_periodicity = models.BooleanField(default=False)
     notification_periodicity_num = models.IntegerField(default=1)
 
-    def check_if_date_is_earlier(created_time, notification_time):
-        if notification_time < created_time:
-            return False
-        else:
+
+    def check_if_date_is_earlier(created_time, notification_date, notification_time):
+        print(created_time.date(), notification_date)
+        print(created_time.time(), notification_time)
+        if created_time.date() < notification_date:
             return True
+        elif created_time.date() == notification_date:
+            if created_time.time() < notification_time:
+                return True
+            else:
+                return False
+        return False
+    
 
     def __str__(self):
         return self.text.capitalize()
