@@ -24,7 +24,7 @@
                             </div>
                         </div>
                         <p class="pt-2 pb-2">{{ notification.text }}</p>
-                        <h5>Дата напоминания: {{ notification.notification_date }} {{ notification.notification_time }}</h5>
+                        <h5>Дата напоминания: {{ notification.notification_time|date:"H:i" }}, {{ notification.notification_date|date:"d F Y" }}</h5>
                         {% if notification.notification_periodicity == True %}
                             <h5>Постоянно напоминать - {{ notification.notification_periodicity_num }}</h5>
                         {% else %}
