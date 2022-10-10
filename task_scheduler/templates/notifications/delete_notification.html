@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %} Edit task page {% endblock title %}
+{% block title %} Удаление оповещения {% endblock title %}
 
 {% block content %}
     <section>
         <div>
             <form action="" method="post">
                 {% csrf_token %}
-                <p>Are you sure to delete this task?</p>
+                <p>Вы уверены, что хотите удалить это оповещение?</p>
                 <div class="border m-2 p-2">
                     <div>
                         <h5>{{ notification.notification_task_type }}</h5>

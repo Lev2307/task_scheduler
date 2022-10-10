@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %} Create task page {% endblock title %}
+{% block title %} Создание оповещения {% endblock title %}
 
 {% block content %}
     <section>
@@ -8,7 +8,7 @@
             <form action="" method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit">Create a new one</button>
+                <button type="submit">Добавить оповещение</button>
             </form>
         </div>
     </section>

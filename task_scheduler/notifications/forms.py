@@ -1,6 +1,6 @@
 from datetime import datetime
 from django import forms
-from .models import Notification 
+from .models import Notification, UserNotificationCategories
 
 class NotificationCreateForm(forms.ModelForm):
     def clean(self):
@@ -18,6 +18,14 @@ class NotificationCreateForm(forms.ModelForm):
             'notification_date': forms.SelectDateWidget(),
             'notification_time': forms.TimeInput(attrs={'type': 'time'})
         }
+        labels = {
+            'notification_task_type' : 'тип оповещения',
+            'text' : 'текст',
+            'notification_date' : 'дата оповещения ( день, месяц, год )',
+            'notification_time' : 'дата оповещения ( часы, минуты )',
+            'notification_periodicity' : 'повторять ли оповещение',
+            'notification_periodicity_num' : 'сколько раз напомнить',
+        }
     
     
 class NotificationEditForm(forms.ModelForm):
@@ -27,4 +35,20 @@ class NotificationEditForm(forms.ModelForm):
         widgets = {
             'notification_date': forms.SelectDateWidget(),
             'notification_time': forms.TimeInput(attrs={'type': 'time'})
+        }
+        labels = {
+            'notification_task_type' : 'тип оповещения',
+            'text' : 'текст',
+            'notification_date' : 'дата оповещения ( день, месяц, год )',
+            'notification_time' : 'дата оповещения ( часы, минуты )',
+            'notification_periodicity' : 'повторять ли оповещение',
+            'notification_periodicity_num' : 'сколько раз напомнить',
+        }
+
+class UserNotificationCategoriesForm(forms.ModelForm):
+    class Meta:
+        model = UserNotificationCategories
+        fields = ['user_notification_category_name', 'user_notification_category_color']
+        widgets = {
+            'user_notification_category_color': forms.TextInput(attrs={'type': 'color'})
         }

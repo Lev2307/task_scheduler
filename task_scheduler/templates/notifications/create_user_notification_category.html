@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %} Создание новую категорию оповещений {% endblock title %}
+
+{% block content %}
+<section>
+    <nav class="bg-dark h-25 d-flex justify-content-between align-items-center">
+        {% if user.is_authenticated %}
+            <h5 class="text-white fs-4 p-2">{{ user }}</h5>
+            <h5><a class="text-white fs-4 p-2" href="/auth/logout/">Выйти</a></h5>
+        {% endif %}
+    </nav>
+    <div>
+        <form action="" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Добавить новую категорию</button>
+        </form>
+    </div>
+</section>
+{% endblock content %}

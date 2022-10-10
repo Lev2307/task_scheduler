@@ -3,6 +3,11 @@ from django.db import models
 from authentication.models import MyUser
 
 # Create your models here.
+class UserNotificationCategories(models.Model):
+    user = models.ForeignKey(MyUser, null=True, on_delete=models.SET_NULL)
+    user_notification_category_name = models.CharField(max_length=15)
+    user_notification_category_color = models.CharField(max_length=10)
+
 class Notification(models.Model):
     class TaskTypeChoices(models.Choices):
         WORK = 'по работе'

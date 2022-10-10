@@ -1,8 +1,8 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
-from .models import Notification
-from .forms import NotificationCreateForm, NotificationEditForm
+from .models import Notification, UserNotificationCategories
+from .forms import NotificationCreateForm, NotificationEditForm, UserNotificationCategoriesForm
 from django.views.generic import ListView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, DeleteView
@@ -57,3 +57,15 @@ class NotificationDeleteView(LoginRequiredMixin, DeleteView):
         context = super().get_context_data(**kwargs)
         context['notification'] = get_object_or_404(Notification, pk=self.kwargs['pk'])
         return context
+
+class UserNotificationCategoriesView(LoginRequiredMixin, CreateView):
+    model = UserNotificationCategories
+    form_class = UserNotificationCategoriesForm
+    template_name = 'notifications/create_user_notification_category.html'
+    success_url = reverse_lazy('notification_list')
+
+    def form_valid(self, form):
+        new_form = form.save(commit=True)
+        new_form.user = self.request.user
+        new_form.save()
+        return HttpResponseRedirect(self.success_url)
