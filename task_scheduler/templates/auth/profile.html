@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %} {{ user.username }} page {% endblock title %}
+
+{% block content %}
+    <section>
+        <nav class="bg-dark h-25 d-flex justify-content-between align-items-center">
+            {% if user.is_authenticated %}
+                <h5 class="text-white fs-4 p-2">{{ user }}</h5>
+                <h5><a class="text-white fs-4 p-2" href="/auth/logout/">Выйти</a></h5>
+            {% endif %}
+        </nav>
+        <div>
+            <h4>Вы с нами c: {{ user.date_joined|date:"d F Y" }}</h4>
+            <h4>Ваши категории:</h4>
+            <div class="ms-3 border w-50">
+                {% for notif_type in user.notification_type.all %}
+                    <h1>{{ notif_type }}</h1>
+                {% endfor %}
+            </div>
+            <a class="btn btn-outline-primary m-2" href="/notifications/add_notification_type/">Добавить новую категорию для оповещений</a>
+            <div class="mt-2">
+                {% if user.is_subscribed == False %}
+                    <h4>Вы ещё не подписаны</h4>
+                {% else %}
+                    <h4>Вы подписаны ^-^</h4>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

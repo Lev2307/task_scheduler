@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Notification, UserNotificationCategories
+from .models import Notification, NotificationType
 
 # Register your models here.
 
@@ -8,6 +8,7 @@ class AdminNotification(admin.ModelAdmin):
     list_display = ('user', 'text', 'notification_time', 'id')
     list_filter = ('user', 'created_time')
 
-@admin.register(UserNotificationCategories)
-class AdminNotification(admin.ModelAdmin):
-    list_display = ('user', 'user_notification_category_name', 'user_notification_category_color')
+
+@admin.register(NotificationType)
+class AdminNotificationTypeName(admin.ModelAdmin):
+    list_display = ('name_type', )

@@ -1,11 +1,12 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
-from .models import Notification, UserNotificationCategories
-from .forms import NotificationCreateForm, NotificationEditForm, UserNotificationCategoriesForm
+from .models import Notification, NotificationType
+from .forms import NotificationCreateForm, NotificationEditForm, AddNotificationTypeForm
 from django.views.generic import ListView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, DeleteView
+from authentication.models import MyUser
 
 # Create your views here.
 class HomeView(View):
@@ -34,9 +35,16 @@ class NotificationCreateView(LoginRequiredMixin, CreateView):
     template_name = 'notifications/create_notification.html'
     success_url = reverse_lazy('notification_list')
 
+    def get_context_data(self, **kwargs):
+        c = super().get_context_data(**kwargs)
+        c['notifications_types'] = MyUser.objects.get(id=self.request.user.pk).notification_type.all()
+        return c
+
     def form_valid(self, form):
+        response = self.request.POST.get('select_type')
         notification_form = form.save(commit=True)
-        notification_form.user = self.request.user
+        notification_form.user = self.request.user   
+        notification_form.notification_task_type = response   
         notification_form.save()
         return HttpResponseRedirect(self.success_url)
 
@@ -58,14 +66,15 @@ class NotificationDeleteView(LoginRequiredMixin, DeleteView):
         context['notification'] = get_object_or_404(Notification, pk=self.kwargs['pk'])
         return context
 
-class UserNotificationCategoriesView(LoginRequiredMixin, CreateView):
-    model = UserNotificationCategories
-    form_class = UserNotificationCategoriesForm
-    template_name = 'notifications/create_user_notification_category.html'
-    success_url = reverse_lazy('notification_list')
+class AddNotificationTypeView(LoginRequiredMixin, CreateView):
+    model = NotificationType
+    form_class = AddNotificationTypeForm
+    success_url = reverse_lazy('profile')
+    login_url = reverse_lazy('login')
+    template_name = 'notifications/add_new_notification_type.html'
 
     def form_valid(self, form):
-        new_form = form.save(commit=True)
-        new_form.user = self.request.user
-        new_form.save()
+        name_type = form.cleaned_data['name_type']
+        new_type = MyUser.objects.get(id=self.request.user.pk).notification_type.create(name_type=name_type)
+        new_type.save()
         return HttpResponseRedirect(self.success_url)

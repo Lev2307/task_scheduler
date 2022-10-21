@@ -1,6 +1,6 @@
 from datetime import datetime
 from django import forms
-from .models import Notification, UserNotificationCategories
+from .models import Notification, NotificationType
 
 class NotificationCreateForm(forms.ModelForm):
     def clean(self):
@@ -13,7 +13,7 @@ class NotificationCreateForm(forms.ModelForm):
 
     class Meta:
         model = Notification
-        fields = ['notification_task_type', 'text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
+        fields = ['text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
         widgets = {
             'notification_date': forms.SelectDateWidget(),
             'notification_time': forms.TimeInput(attrs={'type': 'time'})
@@ -31,7 +31,7 @@ class NotificationCreateForm(forms.ModelForm):
 class NotificationEditForm(forms.ModelForm):
     class Meta:
         model = Notification
-        fields = ['notification_task_type', 'text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
+        fields = ['text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
         widgets = {
             'notification_date': forms.SelectDateWidget(),
             'notification_time': forms.TimeInput(attrs={'type': 'time'})
@@ -45,10 +45,10 @@ class NotificationEditForm(forms.ModelForm):
             'notification_periodicity_num' : 'сколько раз напомнить',
         }
 
-class UserNotificationCategoriesForm(forms.ModelForm):
+class AddNotificationTypeForm(forms.ModelForm):
     class Meta:
-        model = UserNotificationCategories
-        fields = ['user_notification_category_name', 'user_notification_category_color']
-        widgets = {
-            'user_notification_category_color': forms.TextInput(attrs={'type': 'color'})
+        model = NotificationType
+        fields = ['name_type']        
+        labels = {
+            'name_type' : 'имя новой категории',
         }

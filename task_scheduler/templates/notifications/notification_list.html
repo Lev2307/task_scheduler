@@ -7,20 +7,27 @@
     <section>
         <nav class="bg-dark h-25 d-flex justify-content-between align-items-center">
             {% if user.is_authenticated %}
-                <h5 class="text-white fs-4 p-2">{{ user }}</h5>
+                <h5><a class="text-white fs-4 p-2" href="/auth/profile/">{{ user }}</a></h5>
                 <h5><a class="text-white fs-4 p-2" href="/auth/logout/">Выйти</a></h5>
             {% endif %}
         </nav>
         <div>
             <div class="d-flex justify-content-between align-items-center">
                 <a class="btn btn-outline-primary m-2" href="/notifications/create/">Добавить оповещение</a>
-                <a class="btn btn-outline-primary m-2" href="/notifications/new_notification_category/">Добавить новую категорию для оповещений</a>
             </div>
             {% if notifications.count > 0 %}
                 {% for notification in notifications %}
                     <div class="border m-2 p-2">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5>{{ notification.notification_task_type }}</h5>
+                            {% if notification.notification_task_type == 'work' %}
+                                <h5 class="text-danger">по работе</h5>
+                            {% elif notification.notification_task_type == 'study' %}
+                                <h5 class="text-warning">по учёбе</h5>
+                            {% elif notification.notification_task_type == 'general' %}
+                                <h5 class="text-muted">общее</h5>
+                            {% else %}
+                                <h5 class="text-info">{{ notification.notification_task_type }}</h5>
+                            {% endif %}
                             <div>
                                 <a href="/notifications/edit/{{ notification.id }}/">Отредактировать</a>
                                 <a href="/notifications/delete/{{ notification.id }}/">Удалить</a>
@@ -36,7 +43,7 @@
                     </div>
                 {% endfor %}
             {% else %}
-                <h1 class="text-center position-absolute top-50 start-50 translate-middle text-dark fs-2">Пока что у вас нет никаких оповещений<br><a class="fs-4 text-decoration-none" href="/notifications/create/">Создать новое оповещение ;></a> </h1>
+                <h1 class="text-center position-absolute top-50 start-50 translate-middle text-dark fs-2">Пока что у вас нет никаких оповещений ;><br></h1>
             {% endif %}
         </div>
     </section>
