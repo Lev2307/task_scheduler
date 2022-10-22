@@ -73,8 +73,13 @@ class AddNotificationTypeView(LoginRequiredMixin, CreateView):
     login_url = reverse_lazy('login')
     template_name = 'notifications/add_new_notification_type.html'
 
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw['request'] = self.request # the trick!
+        return kw
+
     def form_valid(self, form):
-        name_type = form.cleaned_data['name_type']
-        new_type = MyUser.objects.get(id=self.request.user.pk).notification_type.create(name_type=name_type)
+        new_type = MyUser.objects.get(id=self.request.user.pk).notification_type.create(name_type=form.cleaned_data['name_type'])
         new_type.save()
+        form.save(commit=False)
         return HttpResponseRedirect(self.success_url)

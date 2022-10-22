@@ -1,6 +1,7 @@
 from datetime import datetime
 from django import forms
 from .models import Notification, NotificationType
+from authentication.views import MyUser
 
 class NotificationCreateForm(forms.ModelForm):
     def clean(self):
@@ -9,7 +10,7 @@ class NotificationCreateForm(forms.ModelForm):
         created_time = datetime.now()
         print(notification_date, notification_time)
         if Notification.check_if_date_is_earlier(created_time, notification_date, notification_time) != True:
-            raise forms.ValidationError('You`ve entered wrong notification date. Please try again!!!')
+            raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
 
     class Meta:
         model = Notification
@@ -52,3 +53,11 @@ class AddNotificationTypeForm(forms.ModelForm):
         labels = {
             'name_type' : 'имя новой категории',
         }
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request')
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        name_type = self.cleaned_data['name_type']
+        if MyUser.objects.get(id=self.request.user.pk).notification_type.filter(name_type=name_type).exists():
+            raise forms.ValidationError('Данный тип оповещения УЖЕ существует. Попробуйте ввести другое ;>')
