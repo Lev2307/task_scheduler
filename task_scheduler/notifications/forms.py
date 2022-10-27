@@ -11,7 +11,7 @@ class NotificationCreateForm(forms.ModelForm):
         print(notification_date, notification_time)
         if Notification.check_if_date_is_earlier(created_time, notification_date, notification_time) != True:
             raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
-
+            
     class Meta:
         model = Notification
         fields = ['text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
@@ -49,9 +49,12 @@ class NotificationEditForm(forms.ModelForm):
 class AddNotificationTypeForm(forms.ModelForm):
     class Meta:
         model = NotificationType
-        fields = ['name_type']        
+        fields = ['name_type', 'color']        
         labels = {
             'name_type' : 'имя новой категории',
+        }
+        widgets = {
+            'color': forms.TextInput(attrs={'type': 'color'})
         }
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')

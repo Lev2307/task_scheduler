@@ -1,22 +1,23 @@
 from django.test import TestCase, Client
-from .models import Notification
+from .models import Notification, NotificationType
 from authentication.models import MyUser
 import datetime
 
 # Create your tests here.
 class NotificationTest(TestCase):
     def setUp(self):
+        self.notif_type = NotificationType.objects.create(name_type='new', color='#b31e6f')
         self.basic_user = MyUser(username='admin', email='a@a.com')
         self.basic_user.set_password('123')
         self.username = self.basic_user.username
         self.password = '123'
         self.c = Client()
-        self.basic_user.save()
-        Notification.objects.create(user=self.basic_user, notification_task_type='по работе', text='сделать отсчёт за месяц', notification_date='2022-10-17', notification_time='11:50:07', notification_periodicity=False, notification_periodicity_num=0)
+        Notification.objects.create(user=self.basic_user, notification_task_type='по работе', notification_color='#ba2121', text='сделать отсчёт за месяц', notification_date='2022-10-17', notification_time='11:50:07', notification_periodicity=False, notification_periodicity_num=0)
+        
     def test_created_notification(self):
         '''Проверка создания напоминалки'''
         notification_objects_old = Notification.objects.count()
-        notification = Notification.objects.create(user=self.basic_user, notification_task_type='общее', text='сходить в магаз', notification_date='2022-09-28', notification_time='11:50:07', notification_periodicity=False, notification_periodicity_num=0)
+        notification = Notification.objects.create(user=self.basic_user, notification_task_type='общее', notification_color='#e0c45c', text='сходить в магаз', notification_date='2022-09-28', notification_time='11:50:07', notification_periodicity=False, notification_periodicity_num=0)
         notification_objects_new = Notification.objects.count()
         self.assertTrue(notification_objects_old+1 == notification_objects_new)
 
@@ -27,6 +28,7 @@ class NotificationTest(TestCase):
         time = datetime.time(11, 50, 7)
         self.assertEqual(notification.notification_task_type, 'по работе')
         self.assertEqual(notification.text, 'сделать отсчёт за месяц')
+        self.assertEqual(notification.notification_color, '#ba2121')
         self.assertEqual(notification.notification_date, date.date())
         self.assertEqual(notification.notification_time, time)
         self.assertEqual(notification.created_time.date(), datetime.datetime.now().date())
@@ -105,6 +107,7 @@ class NotificationTest(TestCase):
         data = {
             'user': self.username,
             'notification_task_type': 'по учёбе',
+            'notification_color': '#107a8b',
             'text': 'test note',
             'notification_date': '2022-10-10',
             'notification_time': '19:50:07',
@@ -138,6 +141,7 @@ class NotificationTest(TestCase):
         data = {
             'user': self.username,
             'notification_task_type': 'общее',
+            'notification_color': '#e0c45c',
             'text': 'test edit note',
             'notification_date': '2022-10-15',
             'notification_time': '18:32:56',
@@ -149,6 +153,7 @@ class NotificationTest(TestCase):
         response = self.c.post(f'/notifications/edit/{notification.id}/', data)
         notification = Notification.objects.get(id=1)
         self.assertTrue(notification.notification_task_type, 'общее')
+        self.assertTrue(notification.notification_color, '#e0c45c')
         self.assertTrue(notification.text, 'test edit note')
         self.assertTrue(notification.notification_time, notification_edited_date)
         self.assertTrue(notification.notification_periodicity, True)

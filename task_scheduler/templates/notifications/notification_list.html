@@ -4,6 +4,7 @@
 
 
 {% block content %}
+
     <section>
         <nav class="bg-dark h-25 d-flex justify-content-between align-items-center">
             {% if user.is_authenticated %}
@@ -20,15 +21,7 @@
                 {% for notification in notifications %}
                     <div class="border m-2 p-2">
                         <div class="d-flex justify-content-between align-items-center">
-                            {% if notification.notification_task_type == 'work' %}
-                                <h5 class="text-danger">по работе</h5>
-                            {% elif notification.notification_task_type == 'study' %}
-                                <h5 class="text-warning">по учёбе</h5>
-                            {% elif notification.notification_task_type == 'general' %}
-                                <h5 class="text-muted">общее</h5>
-                            {% else %}
-                                <h5 class="text-info">{{ notification.notification_task_type }}</h5>
-                            {% endif %}
+                                <h5 style='color: {{ notification.notification_color }};'>{{ notification.notification_task_type }}</h5>
                             <div>
                                 <a href="/notifications/edit/{{ notification.id }}/">Отредактировать</a>
                                 <a href="/notifications/delete/{{ notification.id }}/">Удалить</a>

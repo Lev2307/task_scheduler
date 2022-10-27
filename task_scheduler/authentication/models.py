@@ -14,9 +14,9 @@ class MyUser(AbstractUser):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        study = NotificationType.objects.get(name_type='study')
-        work = NotificationType.objects.get(name_type='work')
-        general = NotificationType.objects.get(name_type='general')
+        study = NotificationType.objects.get(name_type='study', color='#107a8b')
+        work = NotificationType.objects.get(name_type='work', color='#ba2121')
+        general = NotificationType.objects.get(name_type='general', color='#e0c45c')
         self.notification_type.add(study)
         self.notification_type.add(work)
         self.notification_type.add(general)

@@ -23,6 +23,7 @@ class NotificationListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['user'] = self.request.user
+        context['notifications_types'] = MyUser.objects.get(id=self.request.user.pk).notification_type.all()
         return context
 
     def get_queryset(self):
@@ -42,9 +43,11 @@ class NotificationCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         response = self.request.POST.get('select_type')
+        notif_type = NotificationType.objects.get(name_type=response)
         notification_form = form.save(commit=True)
         notification_form.user = self.request.user   
-        notification_form.notification_task_type = response   
+        notification_form.notification_task_type = response 
+        notification_form.notification_color = notif_type.color
         notification_form.save()
         return HttpResponseRedirect(self.success_url)
 
@@ -69,17 +72,17 @@ class NotificationDeleteView(LoginRequiredMixin, DeleteView):
 class AddNotificationTypeView(LoginRequiredMixin, CreateView):
     model = NotificationType
     form_class = AddNotificationTypeForm
-    success_url = reverse_lazy('profile')
+    success_url = reverse_lazy('notification_list')
     login_url = reverse_lazy('login')
     template_name = 'notifications/add_new_notification_type.html'
 
     def get_form_kwargs(self):
         kw = super().get_form_kwargs()
-        kw['request'] = self.request # the trick!
+        kw['request'] = self.request
         return kw
 
     def form_valid(self, form):
-        new_type = MyUser.objects.get(id=self.request.user.pk).notification_type.create(name_type=form.cleaned_data['name_type'])
+        new_type = MyUser.objects.get(id=self.request.user.pk).notification_type.create(name_type=form.cleaned_data['name_type'], color=form.cleaned_data['color'])
         new_type.save()
         form.save(commit=False)
         return HttpResponseRedirect(self.success_url)
