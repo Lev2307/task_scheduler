@@ -14,12 +14,12 @@ class MyUser(AbstractUser):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        study = NotificationType.objects.get(name_type='study', color='#107a8b')
-        work = NotificationType.objects.get(name_type='work', color='#ba2121')
-        general = NotificationType.objects.get(name_type='general', color='#e0c45c')
-        self.notification_type.add(study)
-        self.notification_type.add(work)
-        self.notification_type.add(general)
+        study = NotificationType.objects.get_or_create(name_type='study', color='#107a8b')
+        work = NotificationType.objects.get_or_create(name_type='work', color='#ba2121')
+        general = NotificationType.objects.get_or_create(name_type='general', color='#e0c45c')
+        self.notification_type.add(study[0])
+        self.notification_type.add(work[0])
+        self.notification_type.add(general[0])
 
 
 

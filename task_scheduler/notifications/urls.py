@@ -7,5 +7,4 @@ urlpatterns = [
     path('edit/<int:pk>/', NotificationEditView.as_view(), name="edit_notification"),
     path('delete/<int:pk>/', NotificationDeleteView.as_view(), name="delete_notification"),
     path('add_notification_type/', AddNotificationTypeView.as_view(), name="add_notification_type"),
-    path('add_notification_type/', AddNotificationTypeView.as_view(), name="add_notification_type"),
 ]

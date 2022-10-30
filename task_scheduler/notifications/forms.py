@@ -4,14 +4,6 @@ from .models import Notification, NotificationType
 from authentication.views import MyUser
 
 class NotificationCreateForm(forms.ModelForm):
-    def clean(self):
-        notification_date = self.cleaned_data['notification_date']
-        notification_time = self.cleaned_data['notification_time']
-        created_time = datetime.now()
-        print(notification_date, notification_time)
-        if Notification.check_if_date_is_earlier(created_time, notification_date, notification_time) != True:
-            raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
-            
     class Meta:
         model = Notification
         fields = ['text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
@@ -20,15 +12,36 @@ class NotificationCreateForm(forms.ModelForm):
             'notification_time': forms.TimeInput(attrs={'type': 'time'})
         }
         labels = {
-            'notification_task_type' : 'тип оповещения',
             'text' : 'текст',
             'notification_date' : 'дата оповещения ( день, месяц, год )',
             'notification_time' : 'дата оповещения ( часы, минуты )',
             'notification_periodicity' : 'повторять ли оповещение',
             'notification_periodicity_num' : 'сколько раз напомнить',
         }
-    
-    
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request')
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        notification_date = cleaned_data['notification_date']
+        notification_time = cleaned_data['notification_time']
+        two_times = str(notification_date) + ' ' + str(notification_time)
+        notif_time = datetime.strptime(two_times, '%Y-%m-%d %H:%M:%S')
+        created_time = datetime.now()
+        if Notification.check_if_date_is_earlier(created_time, notif_time) != True:
+            raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
+
+    def save(self, commit=True):
+        res = super().save(commit)
+        response = self.request.POST.get('select_type')
+        notif_type = NotificationType.objects.get(name_type=response)
+        res.user = self.request.user   
+        res.notification_task_type = response 
+        res.notification_color = notif_type.color
+        res.save()
+        return res
+        
 class NotificationEditForm(forms.ModelForm):
     class Meta:
         model = Notification
@@ -38,13 +51,36 @@ class NotificationEditForm(forms.ModelForm):
             'notification_time': forms.TimeInput(attrs={'type': 'time'})
         }
         labels = {
-            'notification_task_type' : 'тип оповещения',
             'text' : 'текст',
             'notification_date' : 'дата оповещения ( день, месяц, год )',
             'notification_time' : 'дата оповещения ( часы, минуты )',
             'notification_periodicity' : 'повторять ли оповещение',
             'notification_periodicity_num' : 'сколько раз напомнить',
         }
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request')
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        notification_date = cleaned_data['notification_date']
+        notification_time = cleaned_data['notification_time']
+        two_times = str(notification_date) + ' ' + str(notification_time)
+        notif_time = datetime.strptime(two_times, '%Y-%m-%d %H:%M:%S')
+        created_time = datetime.now()
+        if Notification.check_if_date_is_earlier(created_time, notif_time) != True:
+            raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
+
+    def save(self, commit=True):
+        res = super().save(commit)
+        response = self.request.POST.get('select_type')
+        notif_type = NotificationType.objects.get(name_type=response)
+        res.user = self.request.user   
+        res.notification_task_type = response
+        res.notification_color = notif_type.color
+        res.save()
+        return res
+        
 
 class AddNotificationTypeForm(forms.ModelForm):
     class Meta:

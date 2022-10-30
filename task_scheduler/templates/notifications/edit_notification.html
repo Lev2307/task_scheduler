@@ -7,6 +7,14 @@
         <div>
             <form action="" method="post">
                 {% csrf_token %}
+                <p>
+                    <label for="id_notification_task_type">Edit notification task type:</label>
+                    <select name="select_type" id="">
+                        {% for n_type in notifications_types %}
+                            <option value="{{ n_type.name_type }}">{{ n_type.name_type }}</option>
+                        {% endfor %}
+                    </select>
+                </p>
                 {{ form.as_p }}
                 <button type="submit">Отредактировать</button>
             </form>

@@ -41,15 +41,10 @@ class NotificationCreateView(LoginRequiredMixin, CreateView):
         c['notifications_types'] = MyUser.objects.get(id=self.request.user.pk).notification_type.all()
         return c
 
-    def form_valid(self, form):
-        response = self.request.POST.get('select_type')
-        notif_type = NotificationType.objects.get(name_type=response)
-        notification_form = form.save(commit=True)
-        notification_form.user = self.request.user   
-        notification_form.notification_task_type = response 
-        notification_form.notification_color = notif_type.color
-        notification_form.save()
-        return HttpResponseRedirect(self.success_url)
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw['request'] = self.request
+        return kw
 
 class NotificationEditView(LoginRequiredMixin, UpdateView):
     login_url = reverse_lazy('login')
@@ -57,6 +52,17 @@ class NotificationEditView(LoginRequiredMixin, UpdateView):
     form_class = NotificationEditForm
     template_name = 'notifications/edit_notification.html'
     success_url = reverse_lazy('notification_list')
+
+    def get_context_data(self, **kwargs):
+        c = super().get_context_data(**kwargs)
+        c['notifications_types'] = MyUser.objects.get(id=self.request.user.pk).notification_type.all()
+        return c
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw['request'] = self.request
+        return kw
+
 
 class NotificationDeleteView(LoginRequiredMixin, DeleteView):
     model = Notification

@@ -5,7 +5,7 @@
 {% block content %}
     <section>
         <div>
-            <form action="" method="post">
+            <form action="/notifications/create/" method="post">
                 {% csrf_token %}
                 <p>
                     <label for="id_notification_task_type">Notification task type:</label>
@@ -14,7 +14,6 @@
                             <option value="{{ n_type.name_type }}">{{ n_type.name_type }}</option>
                         {% endfor %}
                     </select>
-                    
                 </p>
                 {{ form.as_p }}
                 <button type="submit">Добавить оповещение</button>

@@ -1,60 +1,74 @@
 from django.test import TestCase, Client
+from django.utils import timezone
 from .models import Notification, NotificationType
 from authentication.models import MyUser
-import datetime
+from datetime import datetime, timedelta
 
 # Create your tests here.
+
 class NotificationTest(TestCase):
     def setUp(self):
-        self.notif_type = NotificationType.objects.create(name_type='new', color='#b31e6f')
-        self.basic_user = MyUser(username='admin', email='a@a.com')
-        self.basic_user.set_password('123')
-        self.username = self.basic_user.username
-        self.password = '123'
+        self.datetime_now = datetime.now()
+        self.datetime_past_date = self.datetime_now - timedelta(days=5)
+        self.username = 'admin_name'
+        self.email = 'admin_email@gmail.com'
+        self.password = 'admin'
+        self.notification_test_type = 'test type'
+        self.test_text = 'test text'
+        self.test_color = '#000'        
+        self.basic_user = MyUser(username=self.username, email=self.email)
+        self.basic_user.set_password(self.password)
+        self.basic_user.save()
+        self.test_type = NotificationType.objects.create(name_type=self.notification_test_type, color=self.test_color)
+        self.basic_user.notification_type.add(self.test_type)
         self.c = Client()
-        Notification.objects.create(user=self.basic_user, notification_task_type='по работе', notification_color='#ba2121', text='сделать отсчёт за месяц', notification_date='2022-10-17', notification_time='11:50:07', notification_periodicity=False, notification_periodicity_num=0)
         
+        self.basic_user.notification_type.add()
+        Notification.objects.create(
+            user=self.basic_user,
+            notification_task_type=self.notification_test_type, 
+            notification_color=self.test_color, 
+            text=self.test_text, 
+            notification_date=self.datetime_now.date(), 
+            notification_time=self.datetime_now.time(), 
+            notification_periodicity=False, 
+            notification_periodicity_num=0
+        )
+        
+    def test_created_and_added_notificationtype(self):
+        '''Проверка создания и добавление типа напоминалки к пользовательским'''
+        notification_type_objects = NotificationType.objects.all().count()
+        user_notification_type_objects = MyUser.objects.get(username=self.username).notification_type.all().count()
+        self.assertEqual(notification_type_objects, 4)
+        self.assertEqual(user_notification_type_objects, 4)
+
     def test_created_notification(self):
         '''Проверка создания напоминалки'''
-        notification_objects_old = Notification.objects.count()
-        notification = Notification.objects.create(user=self.basic_user, notification_task_type='общее', notification_color='#e0c45c', text='сходить в магаз', notification_date='2022-09-28', notification_time='11:50:07', notification_periodicity=False, notification_periodicity_num=0)
-        notification_objects_new = Notification.objects.count()
-        self.assertTrue(notification_objects_old+1 == notification_objects_new)
+        notification_objects = Notification.objects.all().count()
+        self.assertEqual(notification_objects, 1)
 
     def test_get_notification_data(self):
         '''Проверка получения данных напоминалки'''
         notification = Notification.objects.get(id=1)
-        date = datetime.datetime(2022, 10, 17)
-        time = datetime.time(11, 50, 7)
-        self.assertEqual(notification.notification_task_type, 'по работе')
-        self.assertEqual(notification.text, 'сделать отсчёт за месяц')
-        self.assertEqual(notification.notification_color, '#ba2121')
-        self.assertEqual(notification.notification_date, date.date())
-        self.assertEqual(notification.notification_time, time)
-        self.assertEqual(notification.created_time.date(), datetime.datetime.now().date())
+        self.assertEqual(notification.notification_task_type, self.notification_test_type)
+        self.assertEqual(notification.text, self.test_text)
+        self.assertEqual(notification.notification_color, self.test_color)
+        self.assertEqual(notification.notification_date, self.datetime_now.date())
+        self.assertEqual(notification.notification_time, self.datetime_now.time())
+        self.assertEqual(notification.created_time.date(), self.datetime_now.date())
         self.assertEqual(notification.notification_periodicity, False)
         self.assertEqual(notification.notification_periodicity_num, 0)          
 
     def test_notification_date_isnot_earlier_than_created(self):
         '''Проверка, если поставленная дата напоминалки не раньше её создания'''
         notification = Notification.objects.get(id=1)
-        notification_date = datetime.datetime(2022, 12, 7).date()
-        notification_date_equals = datetime.datetime(2022, 10, 7).date()
-        notification_date_past = datetime.datetime(2018, 12, 7).date()
-        notification_time_larger = datetime.time(17, 28, 11)
-        notification_time_smaller = datetime.time(10, 28, 11)
+        notification_date = timezone.make_aware(self.datetime_now) 
+        notification_date_past = timezone.make_aware(self.datetime_past_date) 
         # если дата напоминания > чем дата создания
-        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date, notification_time_larger), True)
+        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date), True)
 
-        # если дата напоминания равна дате создания и время напоминания в часах и минутах > чем время в часах и минутах в создании
-        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date_equals, notification_time_larger), True)
-
-        # если дата напоминания равна дате создания и время напоминания в часах и минутах < чем время в часах и минутах в создании
-        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date_equals, notification_time_smaller), False)
-
-        # если дата напоминания вообщем < дата создания
-        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date_past, notification_time_larger), False)
-        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date_past, notification_time_smaller), False)
+        # если дата напоминания < дата создания
+        self.assertEqual(Notification.check_if_date_is_earlier(notification.created_time, notification_date_past), False)
 
 
     def test_notification_textlength(self):
@@ -66,99 +80,86 @@ class NotificationTest(TestCase):
         self.assertFalse(len(notification_text) <= 350)
     
     def test_notification_type_exists(self):
-        '''Проверка существует ли тип напоминалки'''
+        '''Проверка существует ли тип напоминалки у определённого пользователя'''
         notification = Notification.objects.get(id=1)
-        choices = []
-        for choice in Notification.TaskTypeChoices.choices:
-            choices.append(choice[0])
-        self.assertTrue(notification.notification_task_type in choices)
+        exists = False
+        for notif_type in MyUser.objects.get(username=self.username).notification_type.all():
+            if notification.notification_task_type == str(notif_type):
+                exists = True
+        self.assertEqual(exists, True)
     
     def test_homepage_getresponse(self):
         '''Проверка url у homepage'''
         self.c.login(username=self.username, password=self.password)
 
         response = self.c.get('')
-        self.assertTrue(response.status_code == 200)
+        self.assertEqual(response.status_code, 200)
 
     def test_notificationslist_getresponse(self):
         '''Проверка url у notifications_list если он залогинен или незалогинен'''
         unlogged_response = self.c.get('/notifications/read/')
-        self.assertTrue(unlogged_response.status_code == 302)
+        self.assertEqual(unlogged_response.status_code, 302)
         #logged user
         self.c.login(username=self.username, password=self.password)
 
         logged_response = self.c.get('/notifications/read/')
-        self.assertTrue(logged_response.status_code == 200)
+        self.assertEqual(logged_response.status_code, 200)
     
     def test_notificationcreate_getresponse(self):
         '''Проверка url у notification_create если он залогинен или незалогинен'''
         unlogged_response = self.c.get('/notifications/create/')
-        self.assertTrue(unlogged_response.status_code == 302)
+        self.assertEqual(unlogged_response.status_code, 302)
         #logged user
         self.c.login(username=self.username, password=self.password)
 
         logged_response = self.c.get('/notifications/create/')
-        self.assertTrue(logged_response.status_code == 200)
+        self.assertEqual(logged_response.status_code, 200)
 
     def test_notificationcreate_postresponse(self):
         '''Проверка post запроса у notification_create'''
         self.c.login(username=self.username, password=self.password)
-
+        notif_time = self.datetime_now.strftime("%H:%M:%S")
         data = {
             'user': self.username,
-            'notification_task_type': 'по учёбе',
-            'notification_color': '#107a8b',
-            'text': 'test note',
-            'notification_date': '2022-10-10',
-            'notification_time': '19:50:07',
+            'text': 'new test text',
+            'notification_date': self.datetime_now.date(),
+            'notification_time': self.datetime_now.strptime(notif_time, "%H:%M:%S").time(),
             'notification_periodicity': False,
             'notification_periodicity_num': 0
         }
-
-        notification_objects_old = Notification.objects.count()
         response = self.c.post('/notifications/create/', data, follow=True)
-        notification_objects_new = Notification.objects.count()
-        self.assertTrue(notification_objects_old+1 == notification_objects_new)
-        self.assertTrue(response.status_code == 200)
-    
-    def test_notificationedit_getresponse(self):
-        '''Проверка post запроса у notification_edit'''
+        print(self.c.session)
+        self.assertEqual(response.status_code, 200)
+
+    def test_editnotification_getresponse(self):
+        '''Проверка url у notification_create если он залогинен или незалогинен'''
         notification = Notification.objects.get(id=1)
-        # unlogged user
         unlogged_response = self.c.get(f'/notifications/edit/{notification.id}/')
-        self.assertTrue(unlogged_response.status_code == 302)
+        self.assertEqual(unlogged_response.status_code, 302)
         #logged user
         self.c.login(username=self.username, password=self.password)
 
         logged_response = self.c.get(f'/notifications/edit/{notification.id}/')
-        self.assertTrue(logged_response.status_code == 200)
-
-    def test_notificationedit_postresponse(self):
-        '''Проверка post запроса у notification_edit'''
-        self.c.login(username=self.username, password=self.password)
+        self.assertEqual(logged_response.status_code, 200)
         
+    def test_editnotification_postresponse(self):
+        '''Проверка post запроса у notification_create'''
+        self.c.login(username=self.username, password=self.password)
+        notif_time = self.datetime_now.strftime("%H:%M:%S")
         notification = Notification.objects.get(id=1)
+        print(notification.text)
         data = {
             'user': self.username,
-            'notification_task_type': 'общее',
-            'notification_color': '#e0c45c',
-            'text': 'test edit note',
-            'notification_date': '2022-10-15',
-            'notification_time': '18:32:56',
+            'text': 'edit test text',
+            'notification_date': self.datetime_now.date(),
+            'notification_time': self.datetime_now.strptime(notif_time, "%H:%M:%S").time(),
             'notification_periodicity': True,
-            'notification_periodicity_num': 2
+            'notification_periodicity_num': 4
         }
-        notification_edited_date = datetime.datetime(2022, 10, 15).date()
-        notification_edited_time = datetime.time(18, 32, 56)
-        response = self.c.post(f'/notifications/edit/{notification.id}/', data)
-        notification = Notification.objects.get(id=1)
-        self.assertTrue(notification.notification_task_type, 'общее')
-        self.assertTrue(notification.notification_color, '#e0c45c')
-        self.assertTrue(notification.text, 'test edit note')
-        self.assertTrue(notification.notification_time, notification_edited_date)
-        self.assertTrue(notification.notification_periodicity, True)
-        self.assertTrue(notification.notification_periodicity_num, 2)
-        self.assertTrue(response.status_code == 302)
+        response = self.c.post(f'/notifications/edit/{notification.id}/', data, follow=True)
+        print(notification.text)
+
+        self.assertEqual(response.status_code, 200)
 
     def test_notificationdelete_getresponse(self):
         '''Проверка post запроса у notification_delete'''
@@ -183,3 +184,37 @@ class NotificationTest(TestCase):
 
         self.assertTrue(old_notifications-1 == new_notifications)
         self.assertTrue(response.status_code==200)
+
+    def test_notificationtype_create_getresponse(self):        
+        '''Проверка url у notificationtype_create если он залогинен или незалогинен'''
+        unlogged_response = self.c.get('/notifications/add_notification_type/')
+        self.assertEqual(unlogged_response.status_code, 302)
+        #logged user
+        self.c.login(username=self.username, password=self.password)
+
+        logged_response = self.c.get('/notifications/add_notification_type/')
+        self.assertEqual(logged_response.status_code, 200)
+
+    def test_notificationtype_create_postresponse(self):        
+        '''Проверка post запроса у add_notification_type'''
+        self.c.login(username=self.username, password=self.password)
+        old_notification_types = NotificationType.objects.all().count()
+        # если есть такой тип напоминалки
+        exists_data = {
+            'name_type': self.notification_test_type,
+            'color': self.test_color,
+        }
+        response = self.c.post('/notifications/add_notification_type/', exists_data, follow=True)
+        new_notification_types = NotificationType.objects.all().count()
+        self.assertEqual(old_notification_types, new_notification_types)
+        self.assertEqual(response.status_code, 200)
+        # если нет такого типа напоминалки
+        data = {
+            'name_type': 'new_one',
+            'color': '#8e8e8e',
+        }
+        response = self.c.post('/notifications/add_notification_type/', data, follow=True)
+        new_notification_types = NotificationType.objects.all().count()
+        self.assertEqual(old_notification_types+1, new_notification_types)
+        self.assertEqual(response.status_code, 200)
+
