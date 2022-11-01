@@ -15,7 +15,7 @@ class NotificationTest(TestCase):
         self.password = 'admin'
         self.notification_test_type = 'test type'
         self.test_text = 'test text'
-        self.test_color = '#000'        
+        self.test_color = '#000'    
         self.basic_user = MyUser(username=self.username, email=self.email)
         self.basic_user.set_password(self.password)
         self.basic_user.save()
@@ -128,7 +128,6 @@ class NotificationTest(TestCase):
             'notification_periodicity_num': 0
         }
         response = self.c.post('/notifications/create/', data, follow=True)
-        print(self.c.session)
         self.assertEqual(response.status_code, 200)
 
     def test_editnotification_getresponse(self):

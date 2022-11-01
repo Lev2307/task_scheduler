@@ -4,18 +4,18 @@ from .models import MyUser
 # Create your tests here.
 class MyUserTests(TestCase):
     def setUp(self):
-        self.myuser = MyUser.objects.create(username='admin', password='123', email='a@a.com', is_subscribed=False, is_staff=True, is_active=True, choose_sending='telegram')
-        self.myuser.set_password('123')
-        self.c = Client()
+        self.username = 'admin_name'
+        self.password = 'admin'
+        self.email = 'admin_email@gmail.com'
+        self.choose_sending = 'telegram'
+        self.myuser = MyUser.objects.create(username=self.username, password=self.password, email=self.email, is_subscribed=False, is_staff=True, is_active=True, choose_sending=self.choose_sending)
+        self.myuser.set_password(self.password)
         self.myuser.save()
-        self.username = self.myuser.username
-        self.password = self.myuser.password
+        self.c = Client()
     def test_created_user(self):
         '''Проверка создания пользователя'''
-        myusers_old = MyUser.objects.count()
-        new_user = MyUser.objects.create(username='admin_fake', password='123fake', email='a_fake@a.com', is_subscribed=False, is_staff=False, is_active=True, choose_sending='email')
-        myusers_new = MyUser.objects.count()
-        self.assertTrue(myusers_old+1 == myusers_new)
+        myusers = MyUser.objects.all().count()
+        self.assertEqual(myusers, 1)
     
     def test_user_choosesending_exists(self):
         myuser = MyUser.objects.get(id=1)
@@ -31,6 +31,7 @@ class MyUserTests(TestCase):
 
     def test_registration_request(self):
         '''Проверка регистрации пользователя'''
+        myusers_old = MyUser.objects.all().count()
         data = {
             'username': 'new_user',
             'email': 'new_user@gmail.com',
@@ -39,6 +40,8 @@ class MyUserTests(TestCase):
             'choose_sending': 'telegram'
         }
         response = self.c.post('/auth/registration/', data, follow=True)
+        myusers_new = MyUser.objects.all().count()
+        self.assertEqual(myusers_old+1, myusers_new)
         self.assertEqual(response.status_code, 200)
     
 
@@ -54,6 +57,7 @@ class MyUserTests(TestCase):
             'password': self.password,
         }
         response = self.c.post('/auth/login/', data, follow=True)
+        self.assertTrue(response.context['user'].is_active, True)
         self.assertEqual(response.status_code, 200)
     
     def test_logout(self):
