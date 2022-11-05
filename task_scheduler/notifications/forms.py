@@ -35,8 +35,9 @@ class NotificationCreateForm(forms.ModelForm):
     def save(self, commit=True):
         res = super().save(commit)
         response = self.request.POST.get('select_type')
-        notif_type = NotificationType.objects.get(name_type=response)
         res.user = self.request.user   
+        notif_type = MyUser.objects.get(username=self.request.user).notification_type.get(name_type=response)
+        print(notif_type)
         res.notification_task_type = response 
         res.notification_color = notif_type.color
         res.save()

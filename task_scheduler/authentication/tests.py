@@ -39,10 +39,10 @@ class MyUserTests(TestCase):
             'password2': 'new_userpassword',
             'choose_sending': 'telegram'
         }
-        response = self.c.post('/auth/registration/', data, follow=True)
+        response = self.c.post('/auth/registration/', data)
         myusers_new = MyUser.objects.all().count()
         self.assertEqual(myusers_old+1, myusers_new)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
     
 
     def test_login_url(self):
@@ -54,11 +54,13 @@ class MyUserTests(TestCase):
         '''Проверка входа пользователя в аккаунт'''
         data = {
             'username': self.username,
-            'password': self.password,
+            'password': self.password
         }
-        response = self.c.post('/auth/login/', data, follow=True)
-        self.assertTrue(response.context['user'].is_active, True)
-        self.assertEqual(response.status_code, 200)
+        response = self.c.post('/auth/login/', data)
+        self.assertEqual(response.status_code, 302)
+        print(response.request)
+        print(response.cookies)
+        print(dir(response))
     
     def test_logout(self):
         '''Проверка выхода пользователя из аккаунта'''

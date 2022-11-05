@@ -13,12 +13,18 @@ class NotificationTest(TestCase):
         self.username = 'admin_name'
         self.email = 'admin_email@gmail.com'
         self.password = 'admin'
+        self.second_user_username = 'second_user'
+        self.second_user_email = 'second_user@gmail.com'
+        self.second_user_password = 'second_user123'
         self.notification_test_type = 'test type'
         self.test_text = 'test text'
         self.test_color = '#000'    
         self.basic_user = MyUser(username=self.username, email=self.email)
         self.basic_user.set_password(self.password)
         self.basic_user.save()
+        self.second_user = MyUser(username=self.second_user_username, email=self.second_user_email)
+        self.second_user.set_password(self.second_user_password)
+        self.second_user.save()
         self.test_type = NotificationType.objects.create(name_type=self.notification_test_type, color=self.test_color)
         self.basic_user.notification_type.add(self.test_type)
         self.c = Client()
@@ -41,6 +47,12 @@ class NotificationTest(TestCase):
         user_notification_type_objects = MyUser.objects.get(username=self.username).notification_type.all().count()
         self.assertEqual(notification_type_objects, 4)
         self.assertEqual(user_notification_type_objects, 4)
+
+    def test_create_notificationtype_to_differentusers(self):
+        first_user = MyUser.objects.get(id=1)
+        second_user = MyUser.objects.get(id=2)
+        second_user.notification_type.add(self.test_type)
+        self.assertEqual(first_user.notification_type.all().count(), second_user.notification_type.all().count())
 
     def test_created_notification(self):
         '''Проверка создания напоминалки'''
@@ -119,6 +131,7 @@ class NotificationTest(TestCase):
         '''Проверка post запроса у notification_create'''
         self.c.login(username=self.username, password=self.password)
         notif_time = self.datetime_now.strftime("%H:%M:%S")
+        old_notif = Notification.objects.all().count()
         data = {
             'user': self.username,
             'text': 'new test text',
@@ -127,7 +140,8 @@ class NotificationTest(TestCase):
             'notification_periodicity': False,
             'notification_periodicity_num': 0
         }
-        response = self.c.post('/notifications/create/', data, follow=True)
+        response = self.c.post('/notifications/create/', data)
+        new_notif = Notification.objects.all().count()
         self.assertEqual(response.status_code, 200)
 
     def test_editnotification_getresponse(self):
@@ -146,7 +160,6 @@ class NotificationTest(TestCase):
         self.c.login(username=self.username, password=self.password)
         notif_time = self.datetime_now.strftime("%H:%M:%S")
         notification = Notification.objects.get(id=1)
-        print(notification.text)
         data = {
             'user': self.username,
             'text': 'edit test text',
@@ -155,8 +168,7 @@ class NotificationTest(TestCase):
             'notification_periodicity': True,
             'notification_periodicity_num': 4
         }
-        response = self.c.post(f'/notifications/edit/{notification.id}/', data, follow=True)
-        print(notification.text)
+        response = self.c.post(f'/notifications/edit/{notification.id}/', data)
 
         self.assertEqual(response.status_code, 200)
 
@@ -216,4 +228,3 @@ class NotificationTest(TestCase):
         new_notification_types = NotificationType.objects.all().count()
         self.assertEqual(old_notification_types+1, new_notification_types)
         self.assertEqual(response.status_code, 200)
-
