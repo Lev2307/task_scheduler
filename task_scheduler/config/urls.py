@@ -16,13 +16,23 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from notifications.views import HomeView
+from rest_framework import routers
+from notifications.api_view import NotificationViewSet
+from authentication.api_view import RegisterApiView, LoginApiView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
     path('', HomeView.as_view(), name="home"),
+
+    #api
+    path('api/auth_register/', RegisterApiView.as_view(), name='user_registration_api'),
+    path('api/auth_login/', LoginApiView.as_view(), name='user_login_api'),
+
 
     # Notifications
     path('notifications/', include('notifications.urls')),
+
     # Auth
     path('auth/', include('authentication.urls'))
 
