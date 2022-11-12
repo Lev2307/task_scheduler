@@ -1,6 +1,8 @@
 from django.test import TestCase, Client
 from .models import MyUser
-
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase, force_authenticate
 # Create your tests here.
 class MyUserTests(TestCase):
     def setUp(self):
@@ -8,7 +10,7 @@ class MyUserTests(TestCase):
         self.password = 'admin'
         self.email = 'admin_email@gmail.com'
         self.choose_sending = 'telegram'
-        self.myuser = MyUser.objects.create(username=self.username, password=self.password, email=self.email, is_subscribed=False, is_staff=True, is_active=True, choose_sending=self.choose_sending)
+        self.myuser = MyUser.objects.create(username=self.username, email=self.email, is_subscribed=False, is_staff=True, is_active=True, choose_sending=self.choose_sending)
         self.myuser.set_password(self.password)
         self.myuser.save()
         self.c = Client()
@@ -26,11 +28,13 @@ class MyUserTests(TestCase):
 
     def test_registration_url(self):
         ''' Проверка url регистрации '''
-        response = self.c.get('/auth/registration/')
+        url = reverse('registration')
+        response = self.c.get(url)
         self.assertEqual(response.status_code, 200)
 
     def test_registration_request(self):
         '''Проверка регистрации пользователя'''
+        url = reverse('registration')
         myusers_old = MyUser.objects.all().count()
         data = {
             'username': 'new_user',
@@ -39,32 +43,74 @@ class MyUserTests(TestCase):
             'password2': 'new_userpassword',
             'choose_sending': 'telegram'
         }
-        response = self.c.post('/auth/registration/', data)
+        response = self.c.post(url, data)
         myusers_new = MyUser.objects.all().count()
         self.assertEqual(myusers_old+1, myusers_new)
         self.assertEqual(response.status_code, 302)
     
-
     def test_login_url(self):
         '''Проверка url логина'''
-        response = self.c.get('/auth/login/')
+        url = reverse('login')
+        response = self.c.get(url)
         self.assertEqual(response.status_code, 200)
     
     def test_login_request(self):
         '''Проверка входа пользователя в аккаунт'''
+        url = reverse('login')
         data = {
             'username': self.username,
             'password': self.password
         }
-        response = self.c.post('/auth/login/', data)
+        response = self.c.post(url, data)
         self.assertEqual(response.status_code, 302)
-        print(response.request)
-        print(response.cookies)
-        print(dir(response))
     
     def test_logout(self):
         '''Проверка выхода пользователя из аккаунта'''
-        logout_url = '/auth/logout/'
-        response = self.c.post(logout_url)
+        url = reverse('logout')
+        response = self.c.post(url)
         self.assertTrue(response.status_code == 302)
-        
+
+class AccountTests(APITestCase):
+    def setUp(self):
+        self.api_username = 'testcase_api'
+        self.api_password = 'testcase_api_password'
+        self.api_email = 'testcase_api@gmail.com'
+        self.api_choose_sending = 'telegram'
+
+        self.registration_api_url = reverse('user_registration_api')
+        self.login_api_url = reverse('user_login_api')
+
+        self.myuser = MyUser.objects.create(username=self.api_username, email=self.api_email, is_subscribed=False, is_staff=True, is_active=True, choose_sending=self.api_choose_sending)
+        self.myuser.set_password(self.api_password)
+        self.myuser.save()
+        return super().setUp()
+
+    def test_registration_url(self):
+        '''Проверка url api регистрации'''
+        response = self.client.get(self.registration_api_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_registration_request(self):
+        '''Проверка api регистрации пользователя'''
+        old_users = MyUser.objects.all().count()
+        data = {
+            "username": 'new_' + self.api_username,
+            "email": 'new_' + self.api_email,
+            "password": 'new_' + self.api_password,
+            "password2": 'new_' + self.api_password,
+            "choose_sending": self.api_choose_sending,
+        }
+        response = self.client.post(self.registration_api_url, data, format='json')
+        new_users = MyUser.objects.all().count()
+        self.assertEqual(old_users+1, new_users)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_login_url(self):
+        '''Проверка url api login'''
+        response = self.client.get(self.login_api_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_login_request(self):
+        '''Проверка api входа пользователя в аккаунт'''
+        res = self.client.post(self.login_api_url, {"username": self.api_username, "password": self.api_password})
+        self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)

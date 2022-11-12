@@ -56,3 +56,8 @@ class MyUserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(msg, code='authorization')
         attrs['user'] = user
         return attrs
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MyUser
+        fields = ['username', 'email', 'is_subscribed', 'is_superuser', 'choose_sending']
