@@ -69,8 +69,15 @@ class MyUserTests(TestCase):
         url = reverse('logout')
         response = self.c.post(url)
         self.assertTrue(response.status_code == 302)
+    
+    def test_profile_page_data(self):
+        '''Проверка профиля пользователя'''
+        self.c.login(username=self.username, password=self.password)
+        url = reverse('profile')
+        response = self.c.get(url)
+        self.assertEqual(response.status_code, 200)
 
-class AccountTests(APITestCase):
+class UserApiTests(APITestCase):
     def setUp(self):
         self.api_username = 'testcase_api'
         self.api_password = 'testcase_api_password'
@@ -79,6 +86,8 @@ class AccountTests(APITestCase):
 
         self.registration_api_url = reverse('user_registration_api')
         self.login_api_url = reverse('user_login_api')
+        self.logout_api_url = reverse('user_logout_api')
+        self.profile_api_url = reverse('user_profile_api')
 
         self.myuser = MyUser.objects.create(username=self.api_username, email=self.api_email, is_subscribed=False, is_staff=True, is_active=True, choose_sending=self.api_choose_sending)
         self.myuser.set_password(self.api_password)
@@ -112,5 +121,34 @@ class AccountTests(APITestCase):
 
     def test_login_request(self):
         '''Проверка api входа пользователя в аккаунт'''
-        res = self.client.post(self.login_api_url, {"username": self.api_username, "password": self.api_password})
-        self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)
+        response = self.client.post(self.login_api_url, {"username": self.api_username, "password": self.api_password})
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+    def test_logout_request(self):
+        '''Проверка api выхода пользователя из аккаунта'''
+        response = self.client.post(self.logout_api_url, follow=True)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_profile_page_data(self):
+        '''Проверка api профиля пользователя'''
+
+        unlogged_response = self.client.get(self.profile_api_url)
+        self.assertEqual(unlogged_response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # logged in
+        self.client.login(username=self.api_username, password=self.api_password)
+        user = MyUser.objects.get(id=1)
+        user_data = {}
+        all_notification_types_data = []
+
+        for notification_type_name in user.notification_type.all():
+            notification_type_name =  user.notification_type.get(name_type=str(notification_type_name))
+            all_notification_types_data.append(str(notification_type_name))
+
+        user_data['data'] = {'username': user.username, 'email': user.email, 'is_subscribed': user.is_subscribed, 'is_superuser': user.is_superuser, 'choose_sending': user.choose_sending}
+        user_data['notification_types'] = all_notification_types_data
+
+        response = self.client.get(self.profile_api_url)
+
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.data, user_data)

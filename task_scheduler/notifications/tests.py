@@ -3,10 +3,13 @@ from django.utils import timezone
 from .models import Notification, NotificationType
 from authentication.models import MyUser
 from datetime import datetime, timedelta
+from rest_framework.test import APITestCase
+from rest_framework import status
+from django.urls import reverse
 
 # Create your tests here.
 
-class NotificationTest(TestCase):
+class NotificationTests(TestCase):
     def setUp(self):
         self.datetime_now = datetime.now()
         self.datetime_past_date = self.datetime_now - timedelta(days=5)
@@ -17,8 +20,8 @@ class NotificationTest(TestCase):
         self.second_user_email = 'second_user@gmail.com'
         self.second_user_password = 'second_user123'
         self.notification_test_type = 'test type'
-        self.test_text = 'test text'
         self.test_color = '#000'    
+        self.test_text = 'test text'
         self.basic_user = MyUser(username=self.username, email=self.email)
         self.basic_user.set_password(self.password)
         self.basic_user.save()
@@ -196,13 +199,28 @@ class NotificationTest(TestCase):
         self.assertTrue(old_notifications-1 == new_notifications)
         self.assertTrue(response.status_code==200)
 
+class NotificationTypeTests(TestCase):
+    def setUp(self):
+        self.username = 'admin_name'
+        self.email = 'admin_email@gmail.com'
+        self.password = 'admin'
+        self.notification_test_type = 'test type'
+        self.test_color = '#000'    
+        self.c = Client()
+        self.basic_user = MyUser(username=self.username, email=self.email)
+        self.basic_user.set_password(self.password)
+        self.basic_user.save()
+        self.test_type = NotificationType.objects.create(name_type=self.notification_test_type, color=self.test_color)
+        self.test_type.save()
+        self.basic_user.notification_type.add(self.test_type)
+        return super().setUp()
+
     def test_notificationtype_create_getresponse(self):        
         '''Проверка url у notificationtype_create если он залогинен или незалогинен'''
         unlogged_response = self.c.get('/notifications/add_notification_type/')
         self.assertEqual(unlogged_response.status_code, 302)
         #logged user
         self.c.login(username=self.username, password=self.password)
-
         logged_response = self.c.get('/notifications/add_notification_type/')
         self.assertEqual(logged_response.status_code, 200)
 
@@ -219,6 +237,7 @@ class NotificationTest(TestCase):
         new_notification_types = NotificationType.objects.all().count()
         self.assertEqual(old_notification_types, new_notification_types)
         self.assertEqual(response.status_code, 200)
+
         # если нет такого типа напоминалки
         data = {
             'name_type': 'new_one',
@@ -228,3 +247,32 @@ class NotificationTest(TestCase):
         new_notification_types = NotificationType.objects.all().count()
         self.assertEqual(old_notification_types+1, new_notification_types)
         self.assertEqual(response.status_code, 200)
+
+
+class NotificationsApiTests(APITestCase):
+    def setUp(self):
+        self.notifications_list_api_url = reverse('notification_list_api_view')
+        self.datetime_now = datetime.now()
+        self.datetime_past_date = self.datetime_now - timedelta(days=5)
+        self.username_api = 'testcase_api_name'
+        self.email_api = 'testcase_api_email@gmail.com'
+        self.password_api = 'testcase_api'
+        self.notification_test_type_api = 'test type'
+        self.test_color_api = '#bababa'    
+        self.test_text_api = 'api test text'
+        self.basic_user = MyUser(username=self.username_api, email=self.email_api)
+        self.basic_user.set_password(self.password_api)
+        self.basic_user.save()
+        self.test_type = NotificationType.objects.create(name_type=self.notification_test_type_api, color=self.test_color_api)
+        self.basic_user.notification_type.add(self.test_type)
+    
+    def test_notifications_list(self):
+        #unlogged user
+        unlogged_response = self.client.get(self.notifications_list_api_url)
+        self.assertEqual(unlogged_response.status_code, status.HTTP_403_FORBIDDEN)
+
+        #logged in user
+        self.client.login(username=self.username_api, password=self.password_api)
+
+        logged_response = self.client.get(self.notifications_list_api_url)
+        self.assertEqual(logged_response.status_code, status.HTTP_200_OK)

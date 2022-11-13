@@ -36,7 +36,7 @@ urlpatterns = [
     path('api/auth/registration/', RegisterApiView.as_view(), name='user_registration_api'),
     path('api/auth/login/', LoginApiView.as_view(), name='user_login_api'),
     path('api/auth/logout/', logoutApiView, name='user_logout_api'),
-    path('api/auth/profile/', UserProfileApiView.as_view(), name='user_profile'),
+    path('api/auth/profile/', UserProfileApiView.as_view(), name='user_profile_api'),
 
 
     # Notifications

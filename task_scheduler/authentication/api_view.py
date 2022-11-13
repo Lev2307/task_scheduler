@@ -1,10 +1,9 @@
 from django.shortcuts import redirect
+from django.urls import reverse
 from .models import MyUser
 from django.contrib.auth import login, logout
-from rest_framework import views, permissions, status, generics, mixins
+from rest_framework import permissions, status, generics, mixins
 from rest_framework.response import Response
-from notifications.models import NotificationType
-
 from rest_framework.decorators import api_view
 from .serializers import MyUserRegisterSerializer, MyUserLoginSerializer, UserProfileSerializer
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -39,12 +38,13 @@ class LoginApiView(generics.GenericAPIView):
 @api_view(['GET', 'POST'])
 def logoutApiView(request):
     logout(request)
-    return redirect('/')
+    return redirect(reverse('user_login_api'))
 
 class UserProfileApiView(generics.RetrieveAPIView):
     queryset = MyUser.objects.all()
     serializer_class = UserProfileSerializer
     authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return self.queryset.filter(pk=self.request.user.pk)
