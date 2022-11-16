@@ -1,8 +1,8 @@
 from datetime import datetime
-from django.utils import timezone
 from django.db import models
 
 class NotificationType(models.Model):
+    user = models.ForeignKey('authentication.MyUser', null=True, on_delete=models.SET_NULL)
     name_type = models.CharField(max_length=45)
     color = models.CharField(max_length=15)
     def __str__(self):
@@ -10,10 +10,10 @@ class NotificationType(models.Model):
 
 class Notification(models.Model):
     class Meta:
-        ordering = ['-created_time']
+        ordering = ['user', '-created_time']
+
     user = models.ForeignKey('authentication.MyUser', null=True, on_delete=models.SET_NULL)
-    notification_task_type = models.CharField(max_length=45, null=True)
-    notification_color = models.CharField(max_length=15, null=True)
+    notification_task_type = models.ForeignKey(NotificationType, null=True, on_delete=models.SET_NULL, related_name='notification_task_type', default='study')
     text = models.TextField(max_length=350)
     created_time = models.DateTimeField(auto_now_add=True)
     notification_date = models.DateField(default=datetime.now)

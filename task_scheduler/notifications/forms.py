@@ -2,11 +2,12 @@ from datetime import datetime
 from django import forms
 from .models import Notification, NotificationType
 from authentication.views import MyUser
+from django.db.models import Q
 
 class NotificationCreateForm(forms.ModelForm):
     class Meta:
         model = Notification
-        fields = ['text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
+        fields = ['notification_task_type', 'text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
         widgets = {
             'notification_date': forms.SelectDateWidget(),
             'notification_time': forms.TimeInput(attrs={'type': 'time'})
@@ -18,9 +19,11 @@ class NotificationCreateForm(forms.ModelForm):
             'notification_periodicity' : 'повторять ли оповещение',
             'notification_periodicity_num' : 'сколько раз напомнить',
         }
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')
         super().__init__(*args, **kwargs)
+        self.fields['notification_task_type'].queryset = NotificationType.objects.filter(Q(user=self.request.user) | Q(user=None))
 
     def clean(self):
         cleaned_data = super().clean()
@@ -31,21 +34,11 @@ class NotificationCreateForm(forms.ModelForm):
         created_time = datetime.now()
         if Notification.check_if_date_is_earlier(created_time, notif_time) != True:
             raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
-
-    def save(self, commit=True):
-        res = super().save(commit)
-        response = self.request.POST.get('select_type')
-        res.user = self.request.user   
-        notif_type = MyUser.objects.get(username=self.request.user).notification_type.get(name_type=response)
-        res.notification_task_type = response 
-        res.notification_color = notif_type.color
-        res.save()
-        return res
         
 class NotificationEditForm(forms.ModelForm):
     class Meta:
         model = Notification
-        fields = ['text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
+        fields = ['notification_task_type', 'text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
         widgets = {
             'notification_date': forms.SelectDateWidget(),
             'notification_time': forms.TimeInput(attrs={'type': 'time'})
@@ -57,9 +50,11 @@ class NotificationEditForm(forms.ModelForm):
             'notification_periodicity' : 'повторять ли оповещение',
             'notification_periodicity_num' : 'сколько раз напомнить',
         }
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')
         super().__init__(*args, **kwargs)
+        self.fields['notification_task_type'].queryset = NotificationType.objects.filter(Q(user=self.request.user) | Q(user=None))
 
     def clean(self):
         cleaned_data = super().clean()
@@ -70,17 +65,6 @@ class NotificationEditForm(forms.ModelForm):
         created_time = datetime.now()
         if Notification.check_if_date_is_earlier(created_time, notif_time) != True:
             raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
-
-    def save(self, commit=True):
-        res = super().save(commit)
-        response = self.request.POST.get('select_type')
-        notif_type = NotificationType.objects.get(name_type=response)
-        res.user = self.request.user   
-        res.notification_task_type = response
-        res.notification_color = notif_type.color
-        res.save()
-        return res
-        
 
 class AddNotificationTypeForm(forms.ModelForm):
     class Meta:
@@ -98,5 +82,6 @@ class AddNotificationTypeForm(forms.ModelForm):
 
     def clean(self):
         name_type = self.cleaned_data['name_type']
-        if MyUser.objects.get(id=self.request.user.pk).notification_type.filter(name_type=name_type).exists():
-            raise forms.ValidationError('Данный тип оповещения УЖЕ существует. Попробуйте ввести другое ;>')
+        color = self.cleaned_data['color']
+        if MyUser.objects.get(id=self.request.user.pk).notification_type.filter(Q(name_type=name_type) | Q(color=color)).exists():
+            raise forms.ValidationError('Выберите другой цвет или другое название для типа оповещения, так как такое уже существует ;>')

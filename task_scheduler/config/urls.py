@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 from notifications.views import HomeView
 from rest_framework import routers
-from notifications.api_view import NotificationListApiView, CreateNotificationApiView, EditDeleteNotificationApiView, CreateNotificationTypeApiView
+from notifications.api_view import NotificationListApiView, CreateNotificationApiView, DetailNotificationApiView, CreateNotificationTypeApiView
 from authentication.api_view import RegisterApiView, LoginApiView, logoutApiView, UserProfileApiView
 
 urlpatterns = [
@@ -28,7 +28,7 @@ urlpatterns = [
     #api notifications
     path('api/notifications/', NotificationListApiView.as_view(), name='notification_list_api_view'),
     path('api/notifications/create/', CreateNotificationApiView.as_view(), name='create_notification_api_view'),
-    path('api/notifications/edit/<int:pk>/', EditDeleteNotificationApiView.as_view(), name='create_notification_api_view'),
+    path('api/notifications/detail/<int:pk>/', DetailNotificationApiView.as_view(), name='detail_notification_api_view'),
     path('api/notifications/create_new_type/', CreateNotificationTypeApiView.as_view(), name='create_notificationtype_api_view'),
 
 

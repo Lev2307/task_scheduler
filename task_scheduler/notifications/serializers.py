@@ -1,12 +1,14 @@
 from .models import Notification, NotificationType
 from rest_framework import serializers
 from datetime import datetime
+from authentication.models import MyUser
+from django.db.models import Q
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
+        fields = ['notification_task_type', 'text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
 
     def validate(self, attrs):
         notification_date = attrs['notification_date']
@@ -22,3 +24,10 @@ class NotificationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificationType
         fields = ['name_type', 'color']
+    
+    def validate(self, attrs):
+        name_type = attrs['name_type']
+        color = attrs['color']
+        if MyUser.objects.get(id=self.context['request'].user.id).notification_type.filter(Q(name_type=name_type) | Q(color=color)).exists():
+            raise serializers.ValidationError('Выберите другой цвет или другое название для типа оповещения, так как такое уже существует ;>')
+        return attrs

@@ -36,15 +36,16 @@ class NotificationCreateView(LoginRequiredMixin, CreateView):
     template_name = 'notifications/create_notification.html'
     success_url = reverse_lazy('notification_list')
 
-    def get_context_data(self, **kwargs):
-        c = super().get_context_data(**kwargs)
-        c['notifications_types'] = MyUser.objects.get(id=self.request.user.pk).notification_type.all()
-        return c
-
     def get_form_kwargs(self):
         kw = super().get_form_kwargs()
         kw['request'] = self.request
         return kw
+
+    def form_valid(self, form):
+        new_form = form.save(commit=False)
+        new_form.user = self.request.user
+        new_form.save()
+        return HttpResponseRedirect(self.success_url)
 
 class NotificationEditView(LoginRequiredMixin, UpdateView):
     login_url = reverse_lazy('login')
@@ -53,16 +54,10 @@ class NotificationEditView(LoginRequiredMixin, UpdateView):
     template_name = 'notifications/edit_notification.html'
     success_url = reverse_lazy('notification_list')
 
-    def get_context_data(self, **kwargs):
-        c = super().get_context_data(**kwargs)
-        c['notifications_types'] = MyUser.objects.get(id=self.request.user.pk).notification_type.all()
-        return c
-
     def get_form_kwargs(self):
         kw = super().get_form_kwargs()
         kw['request'] = self.request
         return kw
-
 
 class NotificationDeleteView(LoginRequiredMixin, DeleteView):
     model = Notification
@@ -88,7 +83,8 @@ class AddNotificationTypeView(LoginRequiredMixin, CreateView):
         return kw
 
     def form_valid(self, form):
-        new_type = MyUser.objects.get(id=self.request.user.pk).notification_type.create(name_type=form.cleaned_data['name_type'], color=form.cleaned_data['color'])
-        new_type.save()
+        notif_type = self.model.objects.create(user=self.request.user, name_type=form.cleaned_data['name_type'], color=form.cleaned_data['color'])
+        notif_type.save()
+        user = MyUser.objects.get(id=self.request.user.pk).notification_type.add(notif_type)
         form.save(commit=False)
         return HttpResponseRedirect(self.success_url)
