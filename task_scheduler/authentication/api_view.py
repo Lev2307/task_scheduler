@@ -1,12 +1,14 @@
 from django.shortcuts import redirect
 from django.urls import reverse
 from .models import MyUser
+from notifications.models import NotificationType
 from django.contrib.auth import login, logout
 from rest_framework import permissions, status, generics, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .serializers import MyUserRegisterSerializer, MyUserLoginSerializer, UserProfileSerializer
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from django.db.models import Q
 
 
 class RegisterApiView(generics.GenericAPIView, mixins.CreateModelMixin):
@@ -53,8 +55,7 @@ class UserProfileApiView(generics.RetrieveAPIView):
         user_profile = MyUser.objects.get(username=request.user)
         serializer = self.serializer_class(user_profile)
         all_notification_types_data = []
-        for notification_type_name in MyUser.objects.get(username=request.user).notification_type.all():
-            notification_type_name =  MyUser.objects.get(username=request.user).notification_type.get(name_type=str(notification_type_name))
+        for notification_type_name in NotificationType.objects.filter(Q(user=self.request.user) | Q(user=None)):
             all_notification_types_data.append(str(notification_type_name))
         return Response({"data": serializer.data, "notification_types": all_notification_types_data}, status=status.HTTP_202_ACCEPTED)
 

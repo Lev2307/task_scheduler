@@ -55,7 +55,6 @@ class CreateNotificationTypeApiView(generics.GenericAPIView, mixins.CreateModelM
     def get_queryset(self):
         return NotificationType.objects.filter(user=self.request.user)
 
-
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)

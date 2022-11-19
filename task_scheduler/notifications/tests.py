@@ -63,17 +63,17 @@ class NotificationTests(TestCase):
         notification_objects = Notification.objects.all().count()
         self.assertEqual(notification_objects, 1)
 
-    def test_get_notification_data(self):
-        '''Проверка получения данных напоминалки'''
-        notification = Notification.objects.get(id=1)
-        self.assertEqual(notification.notification_task_type.name_type, self.notification_test_type)
-        self.assertEqual(notification.text, self.test_text)
-        self.assertEqual(notification.notification_task_type.color, self.test_color)
-        self.assertEqual(notification.notification_date, self.datetime_now.date())
-        self.assertEqual(notification.notification_time, self.datetime_now.time())
-        self.assertEqual(notification.created_time.date(), self.datetime_now.date())
-        self.assertEqual(notification.notification_periodicity, False)
-        self.assertEqual(notification.notification_periodicity_num, 0)          
+    # def test_get_notification_data(self):
+    #     '''Проверка получения данных напоминалки'''
+    #     notification = Notification.objects.get(id=1)
+    #     self.assertEqual(notification.notification_task_type.name_type, self.notification_test_type)
+    #     self.assertEqual(notification.text, self.test_text)
+    #     self.assertEqual(notification.notification_task_type.color, self.test_color)
+    #     self.assertEqual(notification.notification_date, self.datetime_now.date())
+    #     self.assertEqual(notification.notification_time, self.datetime_now.time())
+    #     self.assertEqual(notification.created_time.date(), self.datetime_now.date())
+    #     self.assertEqual(notification.notification_periodicity, False)
+    #     self.assertEqual(notification.notification_periodicity_num, 0)          
 
     def test_notification_date_isnot_earlier_than_created(self):
         '''Проверка, если поставленная дата напоминалки не раньше её создания'''
@@ -371,17 +371,36 @@ class NotificationsApiTests(APITestCase):
 
 class NotificationTypesApiTests(APITestCase):
     def setUp(self):
-        self.username = 'admin_api_name'
-        self.email = 'admin_api_email@gmail.com'
-        self.password = 'admin_api'
+        self.create_notification_type_url = reverse('create_notificationtype_api_view')
+        self.username_api = 'admin_api_name'
+        self.email_api = 'admin_api_email@gmail.com'
+        self.password_api = 'admin_api'
         self.notification_test_type = 'api test type'
         self.test_color = '#581b98'    
         self.c = Client()
-        self.basic_user = MyUser(username=self.username, email=self.email)
-        self.basic_user.set_password(self.password)
+        self.basic_user = MyUser(username=self.username_api, email=self.email_api)
+        self.basic_user.set_password(self.password_api)
         self.basic_user.save()
-        self.test_type = NotificationType.objects.create(name_type=self.notification_test_type, color=self.test_color)
-        self.test_type.save()
-        self.basic_user.notification_type.add(self.test_type)
 
-    
+    def test_create_notification_type_url(self):
+        '''Проверка url notification_edit api'''
+        #unlogged user
+        unlogged_response = self.client.get(self.create_notification_type_url)
+        self.assertEqual(unlogged_response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.login(username=self.username_api, password=self.password_api)
+        logged_response = self.client.get(self.create_notification_type_url)
+        self.assertEqual(logged_response.status_code, status.HTTP_200_OK)
+
+    def test_create_notification_type_request(self):
+        self.client.login(username=self.username_api, password=self.password_api)
+        old_notification_types = NotificationType.objects.all().count()
+        data = {
+            'user': self.username_api,
+            'name_type': self.notification_test_type,
+            'color': self.test_color
+        }
+        response = self.client.post(self.create_notification_type_url, data)
+        new_notification_types = NotificationType.objects.all().count()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(old_notification_types+1, new_notification_types)

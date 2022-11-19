@@ -85,6 +85,6 @@ class AddNotificationTypeView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         notif_type = self.model.objects.create(user=self.request.user, name_type=form.cleaned_data['name_type'], color=form.cleaned_data['color'])
         notif_type.save()
-        user = MyUser.objects.get(id=self.request.user.pk).notification_type.add(notif_type)
+        MyUser.objects.get(id=self.request.user.pk).notification_type.add(notif_type)
         form.save(commit=False)
         return HttpResponseRedirect(self.success_url)

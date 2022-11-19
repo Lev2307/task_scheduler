@@ -13,9 +13,9 @@
         <div>
             <h4>Вы с нами c: {{ user.date_joined|date:"d F Y" }}</h4>
             <h4>Ваши категории:</h4>
-            <div class="ms-3 border w-50">
-                {% for notif_type in user.notification_type.all %}
-                    <h1>{{ notif_type }}</h1>
+            <div class="ms-3 border w-50"> 
+                {% for user_notif_type in user_notification_types %}
+                    <h1>{{ user_notif_type }}</h1>
                 {% endfor %}
             </div>
             <a class="btn btn-outline-primary m-2" href="/notifications/add_notification_type/">Добавить новую категорию для оповещений</a>

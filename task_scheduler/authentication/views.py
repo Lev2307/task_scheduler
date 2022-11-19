@@ -7,6 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import MyUser
 from notifications.models import NotificationType
 from .forms import RegisterForm
+from django.db.models import Q
 
 # Create your views here.
 class RegisterView(CreateView):
@@ -31,4 +32,8 @@ class UserProfileView(LoginRequiredMixin, DetailView):
     def get_object(self):
         return self.model.objects.get(pk=self.request.user.pk)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user_notification_types'] = NotificationType.objects.filter(Q(user=self.request.user) | Q(user=None))
+        return context
 
