@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./task_scheduler
+    command: py manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./task_scheduler/:/app/
+    env_file:
+      - ./.env.dev
+    ports:
+      - 8000:8000
+    depends_on:
+      - db 
+      - redis
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env.dev
+  redis:
+    image: redis:alpine
+  celery:
+    build: ./task_scheduler
+    command: celery -A config worker -l info
+    volumes: 
+      - ./task_scheduler/:/app/
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - redis
+  celery-beat:
+    build: ./task_scheduler
+    command: celery -A config beat -l info
+    volumes: 
+      - ./task_scheduler/:/app/
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - redis
+
+volumes:
+  postgres_data: 
