@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from .models import Notification, NotificationType
@@ -7,6 +7,7 @@ from django.views.generic import ListView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, DeleteView
 from authentication.models import MyUser
+from .tasks import test_task, create_notification_task
 
 # Create your views here.
 class HomeView(View):
@@ -88,3 +89,7 @@ class AddNotificationTypeView(LoginRequiredMixin, CreateView):
         MyUser.objects.get(id=self.request.user.pk).notification_type.add(notif_type)
         form.save(commit=False)
         return HttpResponseRedirect(self.success_url)
+
+def test_view(request):
+    test_task.apply_async(countdown=15)
+    return HttpResponse('hi!')

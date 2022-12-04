@@ -14,7 +14,11 @@
         </nav>
         <div>
             <div class="d-flex justify-content-between align-items-center">
-                <a class="btn btn-outline-primary m-2" href="/notifications/create/">Добавить оповещение</a>
+                <div>
+                    <a class="btn btn-outline-primary m-2" href="/notifications/create/">Добавить оповещение</a>
+                    <a class="btn btn-outline-primary m-2" href="/notifications/create/">Добавить периодичное оповещение</a>
+                </div>
+
                 <a class="btn btn-outline-primary m-2" href="/notifications/add_notification_type/">Добавить новую категорию для оповещений</a>
             </div>
             {% if notifications.count > 0 %}

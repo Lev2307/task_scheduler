@@ -10,6 +10,7 @@ click-repl==0.2.0
 colorama==0.4.6
 Deprecated==1.2.13
 Django==4.1.1
+django-celery-results==2.4.0
 django-colorfield==0.7.2
 djangorestframework==3.14.0
 kombu==5.2.4

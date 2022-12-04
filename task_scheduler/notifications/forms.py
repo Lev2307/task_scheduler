@@ -35,6 +35,7 @@ class NotificationCreateForm(forms.ModelForm):
         if Notification.check_if_date_is_earlier(created_time, notif_time) != True:
             raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
         
+        
 class NotificationEditForm(forms.ModelForm):
     class Meta:
         model = Notification
