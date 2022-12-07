@@ -10,7 +10,5 @@ docker-compose down -v
 [//]: 
 docker-compose exec service* command* 
 
-
-
 [//]:service* - сервисы из docker-compose.yml, например web
 [//]:command* - комадна из сервиса

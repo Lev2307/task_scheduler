@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %} Создание оповещения {% endblock title %}
+{% block title %} Создание периодичного оповещения {% endblock title %}
 
 {% block content %}
     <section>
@@ -8,7 +8,7 @@
             <form method="post">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit">Добавить оповещение</button>
+                <button type="submit">Добавить периодичное оповещение</button>
             </form>
         </div>
     </section>

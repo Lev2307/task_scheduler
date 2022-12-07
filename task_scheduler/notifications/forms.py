@@ -2,27 +2,38 @@ from datetime import datetime
 from django import forms
 from .models import Notification, NotificationType
 from authentication.models import MyUser
-from authentication.views import MyUser
 from django.db.models import Q
+
+HOURS_CHOICES = [
+    (0, 0),
+    (1, 1),
+    (5, 5),
+    (12, 12),
+    (24, 24)
+]
+DAYS_CHOICES = [
+    (0, 0),
+    (1, 1),
+    (5, 5),
+    (15, 15),
+    (28, 28)
+]
+MONTHS_CHOICES = [
+    (0, 0),
+    (1, 1),
+    (3, 3),
+    (6, 6),
+    (12, 12)
+]
 
 class NotificationCreateForm(forms.ModelForm):
     notification_task_type = forms.ModelChoiceField(queryset=NotificationType.objects.all(), initial='study')
     text = forms.CharField(widget=forms.Textarea, max_length=350)
-    notification_date = forms.DateField(widget=forms.SelectDateWidget())
-    notification_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}))
+    notification_date = forms.DateField(widget=forms.SelectDateWidget(), initial=datetime.now().date())
+    notification_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), initial=datetime.now().time())
     class Meta:
         model = Notification
         fields = ['notification_task_type', 'text', 'notification_date', 'notification_time']
-        labels = {
-            'text' : 'текст',
-            'notification_date' : 'дата оповещения ( день, месяц, год )',
-            'notification_time' : 'дата оповещения ( часы, минуты )',
-
-        }
-
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request')
-        super().__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -34,6 +45,18 @@ class NotificationCreateForm(forms.ModelForm):
         created_time = datetime.now()
         if created_time >=  notif_time:
             raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
+
+class PeriodicalNotificationCreateForm(forms.ModelForm):
+    notification_task_type = forms.ModelChoiceField(queryset=NotificationType.objects.all(), initial='study')
+    text = forms.CharField(widget=forms.Textarea, max_length=350)
+    notification_periodicity_num = forms.IntegerField(initial=1, min_value=1, max_value=15)
+    frequency_hours = forms.ChoiceField(choices=HOURS_CHOICES, initial=0, widget=forms.RadioSelect)
+    frequency_days = forms.ChoiceField(choices=DAYS_CHOICES, initial=0, widget=forms.RadioSelect)
+    frequency_months = forms.ChoiceField(choices=MONTHS_CHOICES, initial=0, widget=forms.RadioSelect)
+
+    class Meta:
+        model = Notification
+        fields = ['notification_task_type', 'text', 'notification_periodicity_num', 'frequency_hours', 'frequency_days', 'frequency_months']
 
 class NotificationEditForm(forms.ModelForm):
     pass

@@ -16,18 +16,21 @@ class NotificationStatus(models.Model):
 
 class NotificationPeriodicity(models.Model):
     HOURS_CHOICES = [
+        (0, 0),
         (1, 1),
-        (4, 4),
+        (5, 5),
         (12, 12),
         (24, 24)
     ]
     DAYS_CHOICES = [
+        (0, 0),
         (1, 1),
-        (4, 4),
+        (5, 5),
         (15, 15),
         (28, 28)
     ]
     MONTHS_CHOICES = [
+        (0, 0),
         (1, 1),
         (3, 3),
         (6, 6),
@@ -45,7 +48,7 @@ class NotificationBase(models.Model):
     notification_date = models.DateField(default=datetime.now)
     notification_time = models.TimeField(default=datetime.now)
     notification_status = models.ManyToManyField(NotificationStatus)
-    notification_type_periodicity = models.ForeignKey(NotificationPeriodicity, null=True, blank=True, on_delete=models.CASCADE)
+    notification_type_periodicity = models.ForeignKey(NotificationPeriodicity, null=True, blank=True, on_delete=models.SET_NULL)
 
     def check_if_date_is_earlier(created_time, notification_date):
         if created_time <=  notification_date:
@@ -59,3 +62,4 @@ class NotificationBase(models.Model):
 class Notification(models.Model):
     user = models.ForeignKey('authentication.MyUser', null=True, on_delete=models.SET_NULL)
     notifications = models.ForeignKey(NotificationBase, null=True, on_delete=models.SET_NULL)
+
