@@ -16,7 +16,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <a class="btn btn-outline-primary m-2" href="/notifications/create/">Добавить оповещение</a>
-                    <a class="btn btn-outline-primary m-2" href="/notifications/create/">Добавить периодичное оповещение</a>
+                    <a class="btn btn-outline-primary m-2" href="/notifications/create_frequency/">Добавить периодичное оповещение</a>
                 </div>
 
                 <a class="btn btn-outline-primary m-2" href="/notifications/add_notification_type/">Добавить новую категорию для оповещений</a>
@@ -25,19 +25,14 @@
                 {% for notification in notifications %}
                     <div class="border m-2 p-2">
                         <div class="d-flex justify-content-between align-items-center">
-                                <h5 style='color: {{ notification.notification_task_type.color }};'>{{ notification.notification_task_type }}</h5>
+                                <h5 style='color: {{ notification.notifications.notification_task_type.color }};'>{{ notification.notifications.notification_task_type }}</h5>
                             <div>
                                 <a href="/notifications/edit/{{ notification.id }}/">Отредактировать</a>
                                 <a href="/notifications/delete/{{ notification.id }}/">Удалить</a>
                             </div>
                         </div>
-                        <p class="pt-2 pb-2">{{ notification.text }}</p>
-                        <h5>Дата напоминания: {{ notification.notification_time|date:"H:i" }}, {{ notification.notification_date|date:"d F Y" }}</h5>
-                        {% if notification.notification_periodicity == True %}
-                            <h5>Постоянно напоминать - {{ notification.notification_periodicity_num }}</h5>
-                        {% else %}
-                            <h5>Не напоминать постоянно</h5>
-                        {% endif %}
+                        <p class="pt-2 pb-2">{{ notification.notifications.text }}</p>
+                        <h5>Дата напоминания: {{ notification.notifications.notification_time|date:"H:i" }}, {{ notification.notifications.notification_date|date:"d F Y" }}</h5>
                     </div>
                 {% endfor %}
             {% else %}

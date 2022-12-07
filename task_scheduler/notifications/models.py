@@ -41,6 +41,7 @@ class NotificationPeriodicity(models.Model):
 class NotificationBase(models.Model):
     notification_task_type = models.ForeignKey(NotificationType, null=True, on_delete=models.SET_NULL, related_name='notification_task_type', default='study')
     text = models.TextField(max_length=350)
+    created_time = models.DateTimeField(auto_now_add=True)
     notification_date = models.DateField(default=datetime.now)
     notification_time = models.TimeField(default=datetime.now)
     notification_status = models.ManyToManyField(NotificationStatus)
@@ -57,5 +58,4 @@ class NotificationBase(models.Model):
 
 class Notification(models.Model):
     user = models.ForeignKey('authentication.MyUser', null=True, on_delete=models.SET_NULL)
-    created_time = models.DateTimeField(auto_now_add=True)
-    notifications = models.ForeignKey(NotificationBase)
+    notifications = models.ForeignKey(NotificationBase, null=True, on_delete=models.SET_NULL)

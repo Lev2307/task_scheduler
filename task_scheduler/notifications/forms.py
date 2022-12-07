@@ -1,71 +1,72 @@
 from datetime import datetime
 from django import forms
 from .models import Notification, NotificationType
+from authentication.models import MyUser
 from authentication.views import MyUser
 from django.db.models import Q
 
 class NotificationCreateForm(forms.ModelForm):
+    notification_task_type = forms.ModelChoiceField(queryset=NotificationType.objects.all(), initial='study')
+    text = forms.CharField(widget=forms.Textarea, max_length=350)
+    notification_date = forms.DateField(widget=forms.SelectDateWidget())
+    notification_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}))
     class Meta:
         model = Notification
-        fields = ['notification_task_type', 'text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
-        widgets = {
-            'notification_date': forms.SelectDateWidget(),
-            'notification_time': forms.TimeInput(attrs={'type': 'time'})
-        }
+        fields = ['notification_task_type', 'text', 'notification_date', 'notification_time']
         labels = {
             'text' : 'текст',
             'notification_date' : 'дата оповещения ( день, месяц, год )',
             'notification_time' : 'дата оповещения ( часы, минуты )',
-            'notification_periodicity' : 'повторять ли оповещение',
-            'notification_periodicity_num' : 'сколько раз напомнить',
+
         }
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')
         super().__init__(*args, **kwargs)
-        self.fields['notification_task_type'].queryset = NotificationType.objects.filter(Q(user=self.request.user) | Q(user=None))
 
     def clean(self):
         cleaned_data = super().clean()
+        print(cleaned_data)
         notification_date = cleaned_data['notification_date']
         notification_time = cleaned_data['notification_time']
         two_times = str(notification_date) + ' ' + str(notification_time)
         notif_time = datetime.strptime(two_times, '%Y-%m-%d %H:%M:%S')
         created_time = datetime.now()
-        if Notification.check_if_date_is_earlier(created_time, notif_time) != True:
+        if created_time >=  notif_time:
             raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
-        
-        
+
 class NotificationEditForm(forms.ModelForm):
-    class Meta:
-        model = Notification
-        fields = ['notification_task_type', 'text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
-        widgets = {
-            'notification_date': forms.SelectDateWidget(),
-            'notification_time': forms.TimeInput(attrs={'type': 'time'})
-        }
-        labels = {
-            'text' : 'текст',
-            'notification_date' : 'дата оповещения ( день, месяц, год )',
-            'notification_time' : 'дата оповещения ( часы, минуты )',
-            'notification_periodicity' : 'повторять ли оповещение',
-            'notification_periodicity_num' : 'сколько раз напомнить',
-        }
+    pass
 
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request')
-        super().__init__(*args, **kwargs)
-        self.fields['notification_task_type'].queryset = NotificationType.objects.filter(Q(user=self.request.user) | Q(user=None))
+    # class Meta:
+    #     model = Notification
+    #     fields = ['notification_task_type', 'text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
+    #     widgets = {
+    #         'notification_date': forms.SelectDateWidget(),
+    #         'notification_time': forms.TimeInput(attrs={'type': 'time'})
+    #     }
+    #     labels = {
+    #         'text' : 'текст',
+    #         'notification_date' : 'дата оповещения ( день, месяц, год )',
+    #         'notification_time' : 'дата оповещения ( часы, минуты )',
+    #         'notification_periodicity' : 'повторять ли оповещение',
+    #         'notification_periodicity_num' : 'сколько раз напомнить',
+    #     }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        notification_date = cleaned_data['notification_date']
-        notification_time = cleaned_data['notification_time']
-        two_times = str(notification_date) + ' ' + str(notification_time)
-        notif_time = datetime.strptime(two_times, '%Y-%m-%d %H:%M:%S')
-        created_time = datetime.now()
-        if Notification.check_if_date_is_earlier(created_time, notif_time) != True:
-            raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
+    # def __init__(self, *args, **kwargs):
+    #     self.request = kwargs.pop('request')
+    #     super().__init__(*args, **kwargs)
+    #     self.fields['notification_task_type'].queryset = NotificationType.objects.filter(Q(user=self.request.user) | Q(user=None))
+
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     notification_date = cleaned_data['notification_date']
+    #     notification_time = cleaned_data['notification_time']
+    #     two_times = str(notification_date) + ' ' + str(notification_time)
+    #     notif_time = datetime.strptime(two_times, '%Y-%m-%d %H:%M:%S')
+    #     created_time = datetime.now()
+    #     if Notification.check_if_date_is_earlier(created_time, notif_time) != True:
+    #         raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
 
 class AddNotificationTypeForm(forms.ModelForm):
     class Meta:

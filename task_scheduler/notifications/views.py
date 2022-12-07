@@ -1,13 +1,14 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
-from .models import Notification, NotificationType
+from .models import Notification, NotificationType, NotificationBase
 from .forms import NotificationCreateForm, NotificationEditForm, AddNotificationTypeForm
 from django.views.generic import ListView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, DeleteView
 from authentication.models import MyUser
-from .tasks import test_task, create_notification_task
+from .tasks import test_task
+from datetime import datetime
 
 # Create your views here.
 class HomeView(View):
@@ -36,7 +37,7 @@ class NotificationCreateView(LoginRequiredMixin, CreateView):
     form_class = NotificationCreateForm
     template_name = 'notifications/create_notification.html'
     success_url = reverse_lazy('notification_list')
-
+    
     def get_form_kwargs(self):
         kw = super().get_form_kwargs()
         kw['request'] = self.request
@@ -46,6 +47,14 @@ class NotificationCreateView(LoginRequiredMixin, CreateView):
         new_form = form.save(commit=False)
         new_form.user = self.request.user
         new_form.save()
+        new_model = NotificationBase.objects.create(
+            notification_task_type=form.cleaned_data['notification_task_type'],
+            text=form.cleaned_data['text'],
+            created_time=datetime.now(),
+            notification_date=form.cleaned_data['notification_date'],
+            notification_time=form.cleaned_data['notification_time'],
+        )
+        Notification.objects.create(user=self.request.user, notifications=new_model)
         return HttpResponseRedirect(self.success_url)
 
 class NotificationEditView(LoginRequiredMixin, UpdateView):
