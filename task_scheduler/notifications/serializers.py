@@ -1,4 +1,4 @@
-from .models import Notification, NotificationType
+from .models import NotificationSingle, NotificationType
 from rest_framework import serializers
 from datetime import datetime
 from authentication.models import MyUser
@@ -7,8 +7,8 @@ from django.db.models import Q
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Notification
-        fields = ['notification_task_type', 'text', 'notification_date', 'notification_time', 'notification_periodicity', 'notification_periodicity_num']
+        model = NotificationSingle
+        fields = ['notification_task_type', 'text', 'notification_date', 'notification_time']
 
     def validate(self, attrs):
         notification_date = attrs['notification_date']
@@ -16,7 +16,7 @@ class NotificationSerializer(serializers.ModelSerializer):
         two_times = str(notification_date) + ' ' + str(notification_time)
         notif_time = datetime.strptime(two_times, '%Y-%m-%d %H:%M:%S')
         created_time = datetime.now()
-        if Notification.check_if_date_is_earlier(created_time, notif_time) != True:
+        if NotificationSingle.check_if_date_is_earlier(created_time, notif_time) != True:
             raise serializers.ValidationError('Дата оповещения не может быть в прошлом!!!')
         return attrs
 

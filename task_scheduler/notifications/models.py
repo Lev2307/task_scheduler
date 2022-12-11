@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.db import models
+from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 class NotificationType(models.Model):
@@ -11,8 +12,29 @@ class NotificationType(models.Model):
 
 
 class NotificationStatus(models.Model):
-    time_stamp = models.DateTimeField()
-    status = models.BooleanField(default=False)
+    time_stamp = models.DateTimeField(blank=True, null=True)
+    done = models.BooleanField(default=False)
+
+    def __str__(self):
+        if self.done == False:
+            return 'Not complited'
+        return 'Complited'
+    
+    def save(self, *args, **kwargs):
+        if self.done == True:
+            self.time_stamp = timezone.now()
+        else:
+            self.time_stamp = None
+        super().save(*args, **kwargs)
+    
+
+
+class NotificationBase(models.Model):
+    user = models.ForeignKey('authentication.MyUser', null=True, on_delete=models.SET_NULL)
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'создал {self.user}, создано в {self.created_time.date()}'
 
 class NotificationPeriodicity(models.Model):
     HOURS_CHOICES = [
@@ -36,19 +58,22 @@ class NotificationPeriodicity(models.Model):
         (6, 6),
         (12, 12)
     ]
+    notification_task_type = models.OneToOneField(NotificationType, null=True, on_delete=models.SET_NULL, related_name='notification_task_type_periodic', default='study')
+    text = models.TextField(max_length=350)
+    notification_type_periodicity = models.OneToOneField(NotificationBase, null=True, blank=True, on_delete=models.SET_NULL)
+    notification_status = models.ManyToManyField(NotificationStatus)
     notification_periodicity_num = models.IntegerField(default=1)
     frequency_hours = models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(24)], choices=HOURS_CHOICES)
     frequency_days = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(28)], choices=DAYS_CHOICES)
     frequency_months = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)], choices=MONTHS_CHOICES)
 
-class NotificationBase(models.Model):
-    notification_task_type = models.ForeignKey(NotificationType, null=True, on_delete=models.SET_NULL, related_name='notification_task_type', default='study')
+class NotificationSingle(models.Model):
+    notification_task_type = models.OneToOneField(NotificationType, null=True, on_delete=models.SET_NULL, related_name='notification_task_type_single', default='study')
     text = models.TextField(max_length=350)
-    created_time = models.DateTimeField(auto_now_add=True)
-    notification_date = models.DateField(default=datetime.now)
-    notification_time = models.TimeField(default=datetime.now)
-    notification_status = models.ManyToManyField(NotificationStatus)
-    notification_type_periodicity = models.ForeignKey(NotificationPeriodicity, null=True, blank=True, on_delete=models.SET_NULL)
+    notification_date = models.DateField(default=datetime.now, verbose_name='Дата исполнения')
+    notification_time = models.TimeField(default=datetime.now, verbose_name='Время исполнения')
+    notification_status = models.OneToOneField(NotificationStatus, on_delete=models.CASCADE, verbose_name='Выполнено')
+    notification_type_single = models.OneToOneField(NotificationBase, null=True, on_delete=models.SET_NULL)
 
     def check_if_date_is_earlier(created_time, notification_date):
         if created_time <=  notification_date:
@@ -59,7 +84,6 @@ class NotificationBase(models.Model):
         return self.text.capitalize()
 
 
-class Notification(models.Model):
-    user = models.ForeignKey('authentication.MyUser', null=True, on_delete=models.SET_NULL)
-    notifications = models.ForeignKey(NotificationBase, null=True, on_delete=models.SET_NULL)
 
+
+# notification_single = NotificationSingle.objects.create(notification_task_type=notif_type, text='test text', notification_date=datetime.now().date(), notification_time=datetime.now().time(), notification_type_single=notif_base)

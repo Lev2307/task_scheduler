@@ -1,11 +1,10 @@
 from django.contrib import admin
-from .models import Notification, NotificationType, NotificationBase, NotificationPeriodicity, NotificationStatus
+from .models import NotificationType, NotificationSingle, NotificationPeriodicity, NotificationStatus
 
 # Register your models here.
 admin.site.register(NotificationStatus)
 admin.site.register(NotificationPeriodicity)
-admin.site.register(NotificationBase)
-admin.site.register(Notification)
+admin.site.register(NotificationSingle)
 
 @admin.register(NotificationType)
 class AdminNotificationTypeName(admin.ModelAdmin):

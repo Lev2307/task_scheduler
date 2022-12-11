@@ -1,6 +1,6 @@
 from django.shortcuts import redirect
 from rest_framework import mixins, generics, status
-from .models import Notification, NotificationType
+from .models import NotificationSingle, NotificationType, NotificationBase
 from authentication.models import MyUser
 from rest_framework import permissions
 from .serializers import NotificationSerializer, NotificationTypeSerializer
@@ -8,17 +8,17 @@ from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 
 class NotificationListApiView(generics.ListAPIView):
-    queryset = Notification.objects.all()
+    queryset = NotificationBase.objects.all()
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [SessionAuthentication, BasicAuthentication]
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user)
+        return NotificationBase.objects.filter(user=self.request.user)
 
 class CreateNotificationApiView(generics.GenericAPIView, mixins.CreateModelMixin):
     serializer_class = NotificationSerializer
-    queryset = Notification.objects.all()
+    queryset = NotificationSingle.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [SessionAuthentication, BasicAuthentication]
 
@@ -26,7 +26,7 @@ class CreateNotificationApiView(generics.GenericAPIView, mixins.CreateModelMixin
         return Response('Create your notification ;>')
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user)
+        return NotificationSingle.objects.filter(user=self.request.user)
     
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -36,12 +36,12 @@ class CreateNotificationApiView(generics.GenericAPIView, mixins.CreateModelMixin
 
 class DetailNotificationApiView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = NotificationSerializer
-    queryset = Notification.objects.all()
+    queryset = NotificationSingle.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [SessionAuthentication, BasicAuthentication]
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user)
+        return NotificationSingle.objects.filter(user=self.request.user)
 
 class CreateNotificationTypeApiView(generics.GenericAPIView, mixins.CreateModelMixin):
     serializer_class = NotificationTypeSerializer

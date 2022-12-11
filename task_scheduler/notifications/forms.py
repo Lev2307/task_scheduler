@@ -1,6 +1,6 @@
 from datetime import datetime
 from django import forms
-from .models import Notification, NotificationType
+from .models import NotificationSingle, NotificationPeriodicity, NotificationType
 from authentication.models import MyUser
 from django.db.models import Q
 
@@ -32,7 +32,7 @@ class NotificationCreateForm(forms.ModelForm):
     notification_date = forms.DateField(widget=forms.SelectDateWidget(), initial=datetime.now().date())
     notification_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), initial=datetime.now().time())
     class Meta:
-        model = Notification
+        model = NotificationSingle
         fields = ['notification_task_type', 'text', 'notification_date', 'notification_time']
 
     def clean(self):
@@ -55,7 +55,7 @@ class PeriodicalNotificationCreateForm(forms.ModelForm):
     frequency_months = forms.ChoiceField(choices=MONTHS_CHOICES, initial=0, widget=forms.RadioSelect)
 
     class Meta:
-        model = Notification
+        model = NotificationPeriodicity
         fields = ['notification_task_type', 'text', 'notification_periodicity_num', 'frequency_hours', 'frequency_days', 'frequency_months']
 
 class NotificationEditForm(forms.ModelForm):
