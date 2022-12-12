@@ -28,13 +28,14 @@ class NotificationStatus(models.Model):
         super().save(*args, **kwargs)
     
 
-
 class NotificationBase(models.Model):
     user = models.ForeignKey('authentication.MyUser', null=True, on_delete=models.SET_NULL)
     created_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'создал {self.user}, создано в {self.created_time.date()}'
+        created_date = self.created_time.date()
+        created_time = self.created_time.time().replace(microsecond=0)
+        return f'создал {self.user}, создано в {created_date} {created_time}'
 
 class NotificationPeriodicity(models.Model):
     HOURS_CHOICES = [
@@ -58,32 +59,25 @@ class NotificationPeriodicity(models.Model):
         (6, 6),
         (12, 12)
     ]
-    notification_task_type = models.OneToOneField(NotificationType, null=True, on_delete=models.SET_NULL, related_name='notification_task_type_periodic', default='study')
-    text = models.TextField(max_length=350)
+    notification_task_type = models.OneToOneField(NotificationType, null=True, on_delete=models.SET_NULL, related_name='notification_task_type_periodic', default='study', verbose_name='тип оповещения')
+    text = models.TextField(max_length=350, verbose_name='текст оповещения')
+    notification_status = models.ManyToManyField(NotificationStatus, verbose_name='Выполнено')
+    notification_periodicity_num = models.IntegerField(default=1, verbose_name='количество повторений оповещения')
+    frequency_hours = models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(24)], choices=HOURS_CHOICES, verbose_name='часы')
+    frequency_days = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(28)], choices=DAYS_CHOICES, verbose_name='дни')
+    frequency_months = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)], choices=MONTHS_CHOICES, verbose_name='месяцы')
     notification_type_periodicity = models.OneToOneField(NotificationBase, null=True, blank=True, on_delete=models.SET_NULL)
-    notification_status = models.ManyToManyField(NotificationStatus)
-    notification_periodicity_num = models.IntegerField(default=1)
-    frequency_hours = models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(24)], choices=HOURS_CHOICES)
-    frequency_days = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(28)], choices=DAYS_CHOICES)
-    frequency_months = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)], choices=MONTHS_CHOICES)
-
-class NotificationSingle(models.Model):
-    notification_task_type = models.OneToOneField(NotificationType, null=True, on_delete=models.SET_NULL, related_name='notification_task_type_single', default='study')
-    text = models.TextField(max_length=350)
-    notification_date = models.DateField(default=datetime.now, verbose_name='Дата исполнения')
-    notification_time = models.TimeField(default=datetime.now, verbose_name='Время исполнения')
-    notification_status = models.OneToOneField(NotificationStatus, on_delete=models.CASCADE, verbose_name='Выполнено')
-    notification_type_single = models.OneToOneField(NotificationBase, null=True, on_delete=models.SET_NULL)
-
-    def check_if_date_is_earlier(created_time, notification_date):
-        if created_time <=  notification_date:
-            return True
-        return False
 
     def __str__(self):
-        return self.text.capitalize()
+        return f'periodic: {self.text.capitalize()}'
 
+class NotificationSingle(models.Model):
+    notification_task_type = models.OneToOneField(NotificationType, null=True, on_delete=models.SET_NULL, related_name='notification_task_type_single', default='study', verbose_name='тип оповещения')
+    text = models.TextField(max_length=350, verbose_name='текст оповещения')
+    notification_date = models.DateField(default=timezone.now(), verbose_name='Дата исполнения')
+    notification_time = models.TimeField(default=timezone.now(), verbose_name='Время исполнения')
+    notification_status = models.OneToOneField(NotificationStatus, null=True, on_delete=models.SET_NULL, verbose_name='Выполнено')
+    notification_type_single = models.OneToOneField(NotificationBase, null=True, on_delete=models.SET_NULL)
 
-
-
-# notification_single = NotificationSingle.objects.create(notification_task_type=notif_type, text='test text', notification_date=datetime.now().date(), notification_time=datetime.now().time(), notification_type_single=notif_base)
+    def __str__(self):
+        return f'single: {self.text.capitalize()}'
