@@ -1,6 +1,6 @@
 from datetime import datetime
 from django import forms
-from .models import NotificationSingle, NotificationPeriodicity, NotificationType
+from .models import NotificationSingle, NotificationPeriodicity, NotificationType, NotificationBase
 from authentication.models import MyUser
 from django.db.models import Q
 
@@ -37,7 +37,6 @@ class NotificationCreateForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        print(cleaned_data)
         notification_date = cleaned_data['notification_date']
         notification_time = cleaned_data['notification_time']
         two_times = str(notification_date) + ' ' + str(notification_time)
@@ -45,6 +44,7 @@ class NotificationCreateForm(forms.ModelForm):
         created_time = datetime.now()
         if created_time >=  notif_time:
             raise forms.ValidationError('Дата оповещения не может быть в прошлом!!!')
+
 
 class PeriodicalNotificationCreateForm(forms.ModelForm):
     notification_task_type = forms.ModelChoiceField(queryset=NotificationType.objects.all(), initial='study')
@@ -57,6 +57,17 @@ class PeriodicalNotificationCreateForm(forms.ModelForm):
     class Meta:
         model = NotificationPeriodicity
         fields = ['notification_task_type', 'text', 'notification_periodicity_num', 'frequency_hours', 'frequency_days', 'frequency_months']
+
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        frequency_hours = cleaned_data['frequency_hours']
+        frequency_days = cleaned_data['frequency_days']
+        frequency_months = cleaned_data['frequency_months']
+        print(frequency_hours, frequency_days, frequency_months)
+        if (int(frequency_hours) == 0) and (int(frequency_days) == 0) and (int(frequency_months) == 0):
+            print('here')
+            raise forms.ValidationError('choose at least one frequency that greater than 0 ;>')
 
 class NotificationEditForm(forms.ModelForm):
     pass

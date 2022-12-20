@@ -17,7 +17,6 @@ from django.contrib import admin
 from django.urls import path, include
 from notifications.views import HomeView
 from rest_framework import routers
-from notifications.views import test_view
 from notifications.api_view import NotificationListApiView, CreateNotificationApiView, DetailNotificationApiView, CreateNotificationTypeApiView
 from authentication.api_view import RegisterApiView, LoginApiView, logoutApiView, UserProfileApiView
 
@@ -31,7 +30,6 @@ urlpatterns = [
     path('api/notifications/create/', CreateNotificationApiView.as_view(), name='create_notification_api_view'),
     path('api/notifications/detail/<int:pk>/', DetailNotificationApiView.as_view(), name='detail_notification_api_view'),
     path('api/notifications/create_new_type/', CreateNotificationTypeApiView.as_view(), name='create_notificationtype_api_view'),
-    path('test/', test_view, name="test_view"),
 
     #api auth
     path('api/auth/registration/', RegisterApiView.as_view(), name='user_registration_api'),

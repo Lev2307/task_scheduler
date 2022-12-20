@@ -21,36 +21,13 @@
 
                 <a class="btn btn-outline-primary m-2" href="/notifications/add_notification_type/">Добавить новую категорию для оповещений</a>
             </div>
-            {% if notifications.count > 0 %}
+            {% if notifications.count >= 1 %}
                 {% for notification in notifications %}
-                    <div class="border m-2 p-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                                <h5 style='color: {{ notification.notifications.notification_task_type.color }};'>{{ notification.notifications.notification_task_type }}</h5>
-                            <div>
-                                <a href="/notifications/edit/{{ notification.id }}/">Отредактировать</a>
-                                <a href="/notifications/delete/{{ notification.id }}/">Удалить</a>
-                            </div>
-                        </div>
-                        <p class="pt-2 pb-2">{{ notification.notifications.text }}</p>
-                        {% if notification.notifications.notification_type_periodicity == None  %}
-                            <h5>Дата напоминания: {{ notification.notifications.notification_time|date:"H:i" }}, {{ notification.notifications.notification_date|date:"d F Y" }}</h5>
-                        {% else %}
-                            <h5>Напоминать {{ notification.notifications.notification_type_periodicity.notification_periodicity_num }} раз(-а)</h5>
-                            <div class="ms-2">
-                                {% if notification.notifications.notification_type_periodicity.frequency_hours > 0 %}
-                                    <h6>каждый(-ие) {{ notification.notifications.notification_type_periodicity.frequency_hours }} час(-ов)</h6>
-                                {% endif %}
-
-                                {% if notification.notifications.notification_type_periodicity.frequency_days > 0 %}
-                                    <h6>каждый(-ие) {{ notification.notifications.notification_type_periodicity.frequency_days }} дней(-ей)</h6>
-                                {% endif %}
-
-                                {% if notification.notifications.notification_type_periodicity.frequency_months > 0 %}
-                                    <h6>каждый(-ие) {{ notification.notifications.notification_type_periodicity.frequency_months }} месяц(-ев)</h6>
-                                {% endif %}
-                            </div>
-                        {% endif %}
-                    </div>
+                    {% if notification.notification_single %}
+                        {% include 'snippets/notification_single.html' with notification=notification id=notification.notification_single.id %}
+                    {% else %}
+                        {% include 'snippets/notification_periodic.html' with notification=notification %}
+                    {% endif %}
                 {% endfor %}
             {% else %}
                 <h1 class="text-center position-absolute top-50 start-50 translate-middle text-dark fs-2">Пока что у вас нет никаких оповещений ;><br></h1>

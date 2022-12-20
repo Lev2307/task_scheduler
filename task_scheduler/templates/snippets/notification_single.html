@@ -1,0 +1,12 @@
+<div class="border m-2 p-2" onclick=location.href='/notifications/single/{{ id }}/'>
+    <div class="d-flex justify-content-between align-items-center">
+            <h5 style='color: {{ notification.notification_single.notification_task_type.color }};'>{{ notification.notification_single.notification_task_type }}</h5>
+        <div>
+            <a href="/notifications/edit/{{ id }}/">Отредактировать</a>
+            <a href="/notifications/delete/{{ id }}/">Удалить</a>
+        </div>
+    </div>
+    <p class="pt-2 pb-2">{{ notification.notification_single.text }}</p>
+    <h5>Дата напоминания: {{ notification.notification_single.notification_time|date:"H:i" }}, {{ notification.notification_single.notification_date|date:"d F Y" }}</h5>
+    <a class="text-decoration-none" href="/notifications/single/{{ id }}/"></a>
+</div>

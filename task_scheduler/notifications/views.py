@@ -5,10 +5,8 @@ from .models import NotificationType, NotificationBase, NotificationPeriodicity,
 from .forms import NotificationCreateForm, NotificationEditForm, AddNotificationTypeForm, PeriodicalNotificationCreateForm
 from django.views.generic import ListView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, UpdateView, DeleteView
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView
 from authentication.models import MyUser
-from .tasks import test_task
-from datetime import datetime
 
 # Create your views here.
 class HomeView(View):
@@ -20,17 +18,23 @@ class HomeView(View):
 class NotificationListView(LoginRequiredMixin, ListView):
     login_url = reverse_lazy('login')
     model = NotificationBase
-    template_name  ='notifications/notification_list.html'
+    template_name = 'notifications/notification_list.html'
     context_object_name = 'notifications'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['user'] = self.request.user
-        context['notifications_types'] = MyUser.objects.get(id=self.request.user.pk).notification_type.all()
+        context['notifications_types'] = NotificationType.objects.filter(user=self.request.user)
         return context
 
     def get_queryset(self):
         return NotificationBase.objects.filter(user=self.request.user)
+
+class NotificationSingleDetailView(LoginRequiredMixin, DetailView):
+    login_url = reverse_lazy('login')
+    model = NotificationSingle
+    template_name = 'notifications/notification_single_detail.html'
+    context_object_name = 'notification_single'
 
 class NotificationSingleCreateView(LoginRequiredMixin, CreateView):
     login_url = reverse_lazy('login')
@@ -39,25 +43,22 @@ class NotificationSingleCreateView(LoginRequiredMixin, CreateView):
     template_name = 'notifications/create_notification.html'
     success_url = reverse_lazy('notification_list')
 
-    # def form_valid(self, form):
-    #     notification_date = form.cleaned_data['notification_date']
-    #     notification_time = form.cleaned_data['notification_time']
-    #     two_times = str(notification_date) + ' ' + str(notification_time)
-    #     notif_time = datetime.strptime(two_times, '%Y-%m-%d %H:%M:%S')
-    #     status = NotificationStatus.objects.create(
-    #         time_stamp=notif_time,
-    #     )
-    #     new_model = NotificationBase.objects.create(
-    #         notification_task_type=form.cleaned_data['notification_task_type'],
-    #         text=form.cleaned_data['text'],
-    #         created_time=datetime.now(),
-    #         notification_date=form.cleaned_data['notification_date'],
-    #         notification_time=form.cleaned_data['notification_time'],
-    #     )
-    #     new_model.notification_status.add(status)
-    #     Notification.objects.create(user=self.request.user, notifications=new_model)
-    #     return HttpResponseRedirect(self.success_url)
-
+    def form_valid(self, form):
+        notif_status = NotificationStatus.objects.create()
+        notif_base = NotificationBase.objects.create(
+            user=self.request.user
+        )
+        notification_single = NotificationSingle.objects.create(
+            notification_task_type=form.cleaned_data['notification_task_type'],
+            text=form.cleaned_data['text'],
+            notification_date=form.cleaned_data['notification_date'],
+            notification_time=form.cleaned_data['notification_time'],
+            notification_status=notif_status,
+            notification_type_single=notif_base
+        )
+        notification_single.save()
+        return HttpResponseRedirect(self.success_url)
+        
 class NotificationSingleEditView(LoginRequiredMixin, UpdateView):
     login_url = reverse_lazy('login')
     model = NotificationSingle
@@ -69,6 +70,7 @@ class NotificationSingleEditView(LoginRequiredMixin, UpdateView):
         kw = super().get_form_kwargs()
         kw['request'] = self.request
         return kw
+
 
 class NotificationSingleDeleteView(LoginRequiredMixin, DeleteView):
     model = NotificationSingle
@@ -88,21 +90,23 @@ class PeriodicalNotificationCreateView(LoginRequiredMixin, CreateView):
     template_name = 'notifications/create_periodical_notification.html'
     success_url = reverse_lazy('notification_list')
 
-    # def form_valid(self, form):
-    #     periodicity_model = NotificationPeriodicity.objects.create(
-    #         notification_periodicity_num=form.cleaned_data['notification_periodicity_num'],
-    #         frequency_hours=form.cleaned_data['frequency_hours'],
-    #         frequency_days=form.cleaned_data['frequency_days'],
-    #         frequency_months=form.cleaned_data['frequency_months']
-    #     )
-    #     new_model = NotificationBase.objects.create(
-    #         notification_task_type=form.cleaned_data['notification_task_type'],
-    #         text=form.cleaned_data['text'],
-    #         created_time=datetime.now(),
-    #         notification_type_periodicity=periodicity_model
-    #     )
-    #     Notification.objects.create(user=self.request.user, notifications=new_model)
-    #     return HttpResponseRedirect(self.success_url)
+    def form_valid(self, form):
+        notif_status = NotificationStatus.objects.create()
+        notif_base = NotificationBase.objects.create(
+            user=self.request.user
+        )
+        periodicity_model = NotificationPeriodicity.objects.create(
+            notification_task_type=form.cleaned_data['notification_task_type'],
+            text=form.cleaned_data['text'],
+            notification_periodicity_num=form.cleaned_data['notification_periodicity_num'],
+            frequency_hours=form.cleaned_data['frequency_hours'],
+            frequency_days=form.cleaned_data['frequency_days'],
+            frequency_months=form.cleaned_data['frequency_months'],
+            notification_type_periodicity=notif_base
+        )
+        periodicity_model.notification_status.add(notif_status)
+        periodicity_model.save()
+        return HttpResponseRedirect(self.success_url)
 
 class AddNotificationTypeView(LoginRequiredMixin, CreateView):
     model = NotificationType
@@ -123,6 +127,6 @@ class AddNotificationTypeView(LoginRequiredMixin, CreateView):
         form.save(commit=False)
         return HttpResponseRedirect(self.success_url)
 
-def test_view(request):
-    test_task.apply_async(countdown=15)
-    return HttpResponse('hi!')
+# def test_view(request):
+#     test_task.apply_async(countdown=15)
+#     return HttpResponse('hi!')
