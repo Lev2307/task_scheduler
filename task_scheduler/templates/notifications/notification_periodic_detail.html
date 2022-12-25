@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2 style='color: {{ notification_periodic.notification_task_type.color }};'>{{ notification_periodic.notification_task_type }}</h2>
+    <p class="pt-2 pb-2 fs-1">{{ notification_periodic.text }}</p>
+    <h2>Напоминать {{ notification_periodic.notification_periodicity_num }} раз(-а)</h5>
+    <div class="ms-2">
+        {% if notification_periodic.frequency_hours > 0 %}
+            <h4>каждый(-ие) {{ notification_periodic.frequency_hours }} час(-ов)</h4>
+        {% endif %}
+
+        {% if notification_periodic.frequency_days > 0 %}
+            <h4>каждый(-ие) {{ notification_periodic.frequency_days }} дней(-ей)</h4>
+        {% endif %}
+
+        {% if notification_periodic.frequency_months > 0 %}
+            <h4>каждый(-ие) {{ notification_periodic.frequency_months }} месяц(-ев)</h4>
+        {% endif %}
+    </div>
+{% endblock content %}

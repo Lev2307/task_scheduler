@@ -6,7 +6,8 @@ from .views import (
         NotificationSingleDeleteView,
         NotificationSingleDetailView, 
         AddNotificationTypeView, 
-        PeriodicalNotificationCreateView
+        PeriodicalNotificationCreateView,
+        NotificationPeriodicDetailView,
     )
 
 urlpatterns = [
@@ -15,6 +16,7 @@ urlpatterns = [
     path('edit/<int:pk>/', NotificationSingleEditView.as_view(), name="edit_notification"),
     path('delete/<int:pk>/', NotificationSingleDeleteView.as_view(), name="delete_notification"),
     path('single/<int:pk>/', NotificationSingleDetailView.as_view(), name="detail_single_notification"),
+    path('periodic/<int:pk>/', NotificationPeriodicDetailView.as_view(), name="detail_periodic_notification"),
     path('add_notification_type/', AddNotificationTypeView.as_view(), name="add_notification_type"),
     path('create_periodical_notification/', PeriodicalNotificationCreateView.as_view(), name="create_periodical_notification")
 ]

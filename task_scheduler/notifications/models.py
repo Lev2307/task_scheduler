@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .tasks import create_notification_task
+from django.core import serializers
 
 
 class NotificationType(models.Model):
@@ -33,6 +34,8 @@ class NotificationStatus(models.Model):
     
 
 class NotificationBase(models.Model):
+    class Meta:
+        ordering = ['-created_time']
     user = models.ForeignKey('authentication.MyUser', null=True, on_delete=models.SET_NULL)
     created_time = models.DateTimeField(auto_now_add=True)
 
@@ -86,7 +89,14 @@ class NotificationSingle(models.Model):
     def __str__(self):
         return f'single: {self.text.capitalize()}'
     
-# @receiver(post_save, sender=NotificationSingle)
-# def created(sender, instance, **kwargs):
-#     return create_notification_task.apply_async(eta=15)
+@receiver(post_save, sender=NotificationSingle)
+def created(sender, instance, **kwargs):
+    notification_date = instance.notification_date
+    notification_time = instance.notification_time
+    two_times = str(notification_date) + ' ' + str(notification_time)
+    all_notif_time = datetime.strptime(two_times, '%Y-%m-%d %H:%M:%S')
+    timezone_now = timezone.now().strptime(timezone.now().strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
+    difference_seconds = (all_notif_time - timezone_now).total_seconds()
+    return create_notification_task.apply_async(args=(instance.id, ))
 
+# eta=timezone_now + timedelta(seconds=difference_seconds)

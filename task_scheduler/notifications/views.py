@@ -36,6 +36,15 @@ class NotificationSingleDetailView(LoginRequiredMixin, DetailView):
     template_name = 'notifications/notification_single_detail.html'
     context_object_name = 'notification_single'
 
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        notif_single = get_object_or_404(NotificationSingle, pk=self.kwargs['pk'])
+        if user == notif_single.notification_type_single.user:
+            return super().get(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(reverse_lazy('notification_list'))
+
+
 class NotificationSingleCreateView(LoginRequiredMixin, CreateView):
     login_url = reverse_lazy('login')
     model = NotificationSingle
@@ -71,7 +80,6 @@ class NotificationSingleEditView(LoginRequiredMixin, UpdateView):
         kw['request'] = self.request
         return kw
 
-
 class NotificationSingleDeleteView(LoginRequiredMixin, DeleteView):
     model = NotificationSingle
     success_url = reverse_lazy('notification_list')
@@ -82,6 +90,21 @@ class NotificationSingleDeleteView(LoginRequiredMixin, DeleteView):
         context = super().get_context_data(**kwargs)
         context['notification'] = get_object_or_404(NotificationSingle, pk=self.kwargs['pk'])
         return context
+
+class NotificationPeriodicDetailView(LoginRequiredMixin, DetailView):
+    login_url = reverse_lazy('login')
+    model = NotificationPeriodicity
+    template_name = 'notifications/notification_periodic_detail.html'
+    context_object_name = 'notification_periodic'
+
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        notif_periodicity = get_object_or_404(NotificationPeriodicity, pk=self.kwargs['pk'])
+        if user == notif_periodicity.notification_type_periodicity.user:
+            return super().get(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(reverse_lazy('notification_list'))
+
 
 class PeriodicalNotificationCreateView(LoginRequiredMixin, CreateView):
     login_url = reverse_lazy('login')

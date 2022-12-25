@@ -24,9 +24,9 @@
             {% if notifications.count >= 1 %}
                 {% for notification in notifications %}
                     {% if notification.notification_single %}
-                        {% include 'snippets/notification_single.html' with notification=notification id=notification.notification_single.id %}
+                        {% include 'snippets/notification_single.html' with id=notification.notification_single.id %}
                     {% else %}
-                        {% include 'snippets/notification_periodic.html' with notification=notification %}
+                        {% include 'snippets/notification_periodic.html' with id=notification.notification_periodic.id %}
                     {% endif %}
                 {% endfor %}
             {% else %}

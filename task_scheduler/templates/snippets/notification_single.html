@@ -9,4 +9,11 @@
     <p class="pt-2 pb-2">{{ notification.notification_single.text }}</p>
     <h5>Дата напоминания: {{ notification.notification_single.notification_time|date:"H:i" }}, {{ notification.notification_single.notification_date|date:"d F Y" }}</h5>
     <a class="text-decoration-none" href="/notifications/single/{{ id }}/"></a>
+    <div>
+        {% if notification.notification_single.notification_status.done == False %}
+            <h4>Not Complited</h4>
+        {% else %}
+            <h4>Complited</h4>
+        {% endif %}
+    </div>
 </div>

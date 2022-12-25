@@ -3,6 +3,7 @@ from django import forms
 from .models import NotificationSingle, NotificationPeriodicity, NotificationType, NotificationBase
 from authentication.models import MyUser
 from django.db.models import Q
+from django.utils import timezone
 
 HOURS_CHOICES = [
     (0, 0),
@@ -29,8 +30,8 @@ MONTHS_CHOICES = [
 class NotificationCreateForm(forms.ModelForm):
     notification_task_type = forms.ModelChoiceField(queryset=NotificationType.objects.all(), initial='study')
     text = forms.CharField(widget=forms.Textarea, max_length=350)
-    notification_date = forms.DateField(widget=forms.SelectDateWidget(), initial=datetime.now().date())
-    notification_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), initial=datetime.now().time())
+    notification_date = forms.DateField(widget=forms.SelectDateWidget(), initial=timezone.now().date())
+    notification_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), initial=timezone.now().time())
     class Meta:
         model = NotificationSingle
         fields = ['notification_task_type', 'text', 'notification_date', 'notification_time']
@@ -58,7 +59,6 @@ class PeriodicalNotificationCreateForm(forms.ModelForm):
         model = NotificationPeriodicity
         fields = ['notification_task_type', 'text', 'notification_periodicity_num', 'frequency_hours', 'frequency_days', 'frequency_months']
 
-        
     def clean(self):
         cleaned_data = super().clean()
         frequency_hours = cleaned_data['frequency_hours']

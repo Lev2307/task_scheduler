@@ -5,7 +5,10 @@ from .models import NotificationType, NotificationSingle, NotificationPeriodicit
 admin.site.register(NotificationStatus)
 admin.site.register(NotificationBase)
 admin.site.register(NotificationPeriodicity)
-admin.site.register(NotificationSingle)
+
+@admin.register(NotificationSingle)
+class AdminNotificationSingle(admin.ModelAdmin):
+    readonly_fields = ('notification_status', )
 
 @admin.register(NotificationType)
 class AdminNotificationTypeName(admin.ModelAdmin):

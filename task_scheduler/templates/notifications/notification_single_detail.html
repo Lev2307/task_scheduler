@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
+{% block title %} Notification Single {% endblock title %}
+
 {% block content %}
     <h2 style='color: {{ notification_single.notification_task_type.color }};'>{{ notification_single.notification_task_type }}</h2>
     <p class="pt-2 pb-2 fs-1">{{ notification_single.text }}</p>
     <h2>Дата напоминания: {{ notification_single.notification_time|date:"H:i" }}, {{ notification_single.notification_date|date:"d F Y" }}</h2>
-    <a class="text-decoration-none" href="/notifications/single/{{ id }}/"></a>
-</div>
 {% endblock content %}
