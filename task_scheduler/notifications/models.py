@@ -97,6 +97,6 @@ def created(sender, instance, **kwargs):
     all_notif_time = datetime.strptime(two_times, '%Y-%m-%d %H:%M:%S')
     timezone_now = timezone.now().strptime(timezone.now().strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
     difference_seconds = (all_notif_time - timezone_now).total_seconds()
-    return create_notification_task.apply_async(args=(instance.id, ))
+    return create_notification_task.apply_async(args=(instance.id, ), eta=timezone_now + timedelta(seconds=difference_seconds))
 
-# eta=timezone_now + timedelta(seconds=difference_seconds)
+# 

@@ -18,12 +18,15 @@ logger = get_task_logger(__name__)
 
 @shared_task()
 def create_notification_task(instance_id):  
-   from .models import NotificationSingle
-   print('created')
-   notif_single = NotificationSingle.objects.filter(id=instance_id)
-   print(notif_single.model)
-   print(dir(notif_single))
-   # notif_single.update(notification_status__done=True, notification_status__time_stamp=timezone.now())
+   from .models import NotificationSingle, NotificationStatus
+   notif_status_id = NotificationSingle.objects.get(id=instance_id).notification_status.id
+   notification_status = NotificationStatus.objects.get(id=notif_status_id)
+   if notification_status.done == False:
+      notification_status.done = True
+      notification_status.time_stamp = timezone.now()
+      notification_status.save()
+   NotificationSingle.objects.filter(id=instance_id).update(notification_status=notification_status)
+   print('changed')
 
 
 

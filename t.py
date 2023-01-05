@@ -1,4 +1,7 @@
-from datetime import datetime
-from django.utils import timezone
-
-print(timezone.make_naive(datetime.now()) )
+s = "pwwkew"
+longest = ""
+for i in s:
+    if i not in longest:
+        longest += i
+print(longest)
+print(len(longest))
