@@ -42,7 +42,10 @@ class NotificationBase(models.Model):
     def __str__(self):
         created_date = self.created_time.date()
         created_time = self.created_time.time().replace(microsecond=0)
-        return f'создал {self.user}, создано в {created_date} {created_time}'
+        try:
+            return f'{self.notification_single}, создал {self.user} в {created_date} {created_time}'
+        except:
+            return f'{self.notification_periodic}, создал {self.user} в {created_date} {created_time}'
 
 class NotificationPeriodicity(models.Model):
     HOURS_CHOICES = [
@@ -76,7 +79,7 @@ class NotificationPeriodicity(models.Model):
     notification_type_periodicity = models.OneToOneField(NotificationBase, null=True, blank=True, on_delete=models.SET_NULL, related_name='notification_periodic')
 
     def __str__(self):
-        return f'periodic: {self.text.capitalize()}'
+        return f'Notification periodic: {self.text.capitalize()}'
 
 class NotificationSingle(models.Model):
     notification_task_type = models.ForeignKey(NotificationType, null=True, on_delete=models.SET_NULL, related_name='notification_task_type_single', default='study', verbose_name='тип оповещения')
@@ -87,7 +90,7 @@ class NotificationSingle(models.Model):
     notification_type_single = models.OneToOneField(NotificationBase, null=True, on_delete=models.SET_NULL, related_name='notification_single')
 
     def __str__(self):
-        return f'single: {self.text.capitalize()}'
+        return f'Notification single: {self.text.capitalize()}'
     
 @receiver(post_save, sender=NotificationSingle)
 def created(sender, instance, **kwargs):
